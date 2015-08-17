@@ -62,7 +62,7 @@ int main(void)
 
 	if (RUN_PROGRAM == 1) {
 
-		settings = CreateSettings(10, 10,
+		settings = CreateSettings(12, 10,
 			80, 5, 3, 3, 10, 3, vegetation_requirements,
 			10, 5, 3, 3, fish_requirements, 10, 1, 0.15);
 		printf("Settings validated and created!\n");
@@ -93,7 +93,7 @@ int main(void)
 			if (fishery) {
 				for (i = 0; i < settings.size_y; i++) {
 					for (j = 0; j < settings.size_x; j++) {
-						printf("%d ", fishery->vegetation_layer[i*settings.size_x + j].vegetation_level);
+						printf("%d ", fishery->vegetation_layer[i + j*settings.size_y].vegetation_level);
 					}
 					printf("\n");
 				}
@@ -102,8 +102,8 @@ int main(void)
 			if (fishery) {
 				for (i = 0; i < settings.size_y; i++) {
 					for (j = 0; j < settings.size_x; j++) {
-						if (fishery->vegetation_layer[i*settings.size_x + j].local_fish) {
-							printf("%d ", fishery->vegetation_layer[i*settings.size_x + j].local_fish->pop_level);
+						if (fishery->vegetation_layer[i + j*settings.size_y].local_fish) {
+							printf("%d ", fishery->vegetation_layer[i + j*settings.size_y].local_fish->pop_level);
 						}
 						else
 							printf("0 ");

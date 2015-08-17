@@ -131,6 +131,7 @@ PyObject *MPyGetFisheryVegetation(PyObject *self, PyObject *args) {
 			break;
 		else
 			fishery = NULL;
+		node = node->next;
 	}
 	if (fishery == NULL) {
 		PyErr_Format(PyExc_KeyError, "Fishery with ID %d not found.\n", fishery_id);
@@ -142,7 +143,9 @@ PyObject *MPyGetFisheryVegetation(PyObject *self, PyObject *args) {
 		return NULL;
 	for (i = 0; i < fishery->settings->size_x*fishery->settings->size_y; i++) {
 		item = PyLong_FromLong(fishery->vegetation_layer[i].vegetation_level);
-		if (PyList_SetItem(py_vegetation_list, i, item) == -1) {
+		/* Rotate coordinates. */
+		if (PyList_SetItem(py_vegetation_list, (i / fishery->settings->size_y) +
+			(i % fishery->settings->size_y)*fishery->settings->size_x, item) == -1) {
 			Py_DECREF(py_vegetation_list);
 			return NULL;
 		}
@@ -175,6 +178,7 @@ PyObject *MPyGetFisheryFishPopulation(PyObject *self, PyObject *args) {
 			break;
 		else
 			fishery = NULL;
+		node = node->next;
 	}
 	if (fishery == NULL) {
 		PyErr_Format(PyExc_KeyError, "Fishery with ID %d not found.\n", fishery_id);
@@ -198,6 +202,7 @@ PyObject *MPyGetFisheryFishPopulation(PyObject *self, PyObject *args) {
 			py_fish = PyList_New(2);
 			if (!py_fish)
 				goto error;
+			/* fish position returned here is for the rotated coordinate system, not the array structure of the c program. */
 			if(PyList_SetItem(py_fish, 0, PyLong_FromLong(fish_ptr->pos_x + fish_ptr->pos_y*fishery->settings->size_x)) == -1 ||
 				PyList_SetItem(py_fish, 1, PyLong_FromLong(fish_ptr->pop_level)) == -1) /* Add fish information. */
 				goto error;

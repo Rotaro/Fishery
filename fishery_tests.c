@@ -163,7 +163,8 @@ int TestInitialFishery(void) {
 		if (fish_node->node_value) {
 			fishes_found_in_list++;
 			fish = fish_node->node_value;
-			assert(fish == fishery->vegetation_layer[fish->pos_x + fish->pos_y*settings.size_y].local_fish);
+			/* assert(fish == fishery->vegetation_layer[fish->pos_x + fish->pos_y*settings.size_y].local_fish); */
+			assert(fish == fishery->vegetation_layer[fish->pos_y + fish->pos_x*settings.size_y].local_fish);
 		}
 		fish_node = fish_node->next;
 	}

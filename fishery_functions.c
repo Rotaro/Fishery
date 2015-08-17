@@ -34,10 +34,8 @@ int CheckFishMemory(Fishery *fishery, Fishery_Settings settings) {
 	node = fishery->fish_list;
 	while (node != NULL && node->node_value != NULL) {
 		fish = node->node_value;
-		/* printf("Fish init correctly: %p, %p\n", fish, &(fish->pos_x)); */
-		pos = fish->pos_x + fish->pos_y*settings.size_x;
-		/* printf("Fish positions: %d, %d, %d\n", fish->pos_x, fish->pos_y, pos);
-		printf("Fish pointers: %p, %p\n", fish, fishery->vegetation_layer[pos].local_fish); */
+		/* pos = fish->pos_x + fish->pos_y*settings.size_x; */
+		pos = fish->pos_y + fish->pos_x*settings.size_y;
 		if (fishery->vegetation_layer[pos].local_fish != fish) {
 			printf("Fish memory doesn't match.\n");
 			return 0;
@@ -226,8 +224,8 @@ Fishery *CreateFishery(
 		fish = malloc(sizeof(Fish_Pool));
 		fish->food_level = 0;
 		fish->pop_level = 1;
-		fish->pos_x = pos_avail[pos] % settings.size_x;
-		fish->pos_y = pos_avail[pos] / settings.size_x;
+		fish->pos_x = pos_avail[pos] / settings.size_y;
+		fish->pos_y = pos_avail[pos] % settings.size_y;
 		fish->reprod_counter = 1;
 		LListAdd(fishery->fish_list, fish);
 		fishery->vegetation_layer[pos_avail[pos]].local_fish = fish;
@@ -315,16 +313,16 @@ void UpdateFisheryVegetation(
 		}
 		/* If vegetation level is large enough, spread to neighboring tiles. */
 		if (fishery->vegetation_layer[i].vegetation_level >= settings.vegetation_level_spread_at) {
-			pos_y = i / settings.size_x;
-			pos_x = i - pos_y*settings.size_x;
+			pos_y = i % settings.size_y;
+			pos_x = i / settings.size_y;
 			/* Spread only to valid tiles, i.e. not outside array
 			and only to empty tiles. */
 			for (j = -1; j <= 1; j++) {
 				for (k = -1; k <= 1; k++) {
 					if (pos_x + j >= 0 && pos_x + j < settings.size_x &&
 						pos_y + k >= 0 && pos_y + k < settings.size_y &&
-						fishery->vegetation_layer[(pos_x + j) + (pos_y + k)*settings.size_x].vegetation_level == 0) {
-						vegetation_layer_growth[(pos_x + j) + (pos_y + k)*settings.size_x] = 1;
+						fishery->vegetation_layer[(pos_y + k) + (pos_x + j)*settings.size_y].vegetation_level == 0) {
+						vegetation_layer_growth[(pos_y + k) + (pos_x + j)*settings.size_y] = 1;
 					}
 				}
 			}
@@ -367,11 +365,13 @@ void UpdateFisheryFishPopulation(
 	fish_node = fishery->fish_list;
 	while (fish_node && fish_node->node_value && fish_node->node_value != first_added) { /* Empty list will have an empty node at the beginning. */
 		fish = fish_node->node_value;
-		fish_pos = fish->pos_x + fish->pos_y*settings.size_x;
+		fish_pos = fish->pos_y + fish->pos_x*settings.size_y;
+		/* fish_pos = fish->pos_x + fish->pos_y*settings.size_x; */
 		/* Consume food and move if needed. */
 		avail_moves = settings.fish_moves_turn;
 		while (avail_moves > 0 && fish->food_level < fish->pop_level * 2 + settings.fish_growth_req) {
-			fish_pos = fish->pos_x + fish->pos_y*settings.size_x;
+			fish_pos = fish->pos_y + fish->pos_x*settings.size_y;
+			/* fish_pos = fish->pos_x + fish->pos_y*settings.size_x; */
 			if (fishery->vegetation_layer[fish_pos].vegetation_level == 0) {
 				/* If no food at current tile, attempt to move. */
 				new_pos = GetNewCoords(fish_pos, 1, settings.size_x, settings.size_y, fishery);
@@ -383,8 +383,10 @@ void UpdateFisheryFishPopulation(
 					/* Move fish pool. */
 					fishery->vegetation_layer[new_pos].local_fish = fish;
 					fishery->vegetation_layer[fish_pos].local_fish = NULL;
-					fish->pos_x = new_pos % settings.size_x;
-					fish->pos_y = new_pos / settings.size_y;
+					/* fish->pos_x = new_pos % settings.size_x;
+					fish->pos_y = new_pos / settings.size_y; */
+					fish->pos_x = new_pos / settings.size_y;
+					fish->pos_y = new_pos % settings.size_y;
 				}
 			}
 			if (fishery->vegetation_layer[fish_pos].vegetation_level > 0) {
@@ -397,7 +399,8 @@ void UpdateFisheryFishPopulation(
 			}
 			avail_moves--;
 		}
-		fish_pos = fish->pos_x + fish->pos_y*settings.size_x;
+		/* fish_pos = fish->pos_x + fish->pos_y*settings.size_x; */
+		fish_pos = fish->pos_y + fish->pos_x*settings.size_y;
 		if (fish->food_level >= settings.fish_growth_req + fish->pop_level) {
 			/* If enough food for growth present. */ 
 			if (fish->pop_level < settings.fish_level_max) {
@@ -415,8 +418,10 @@ void UpdateFisheryFishPopulation(
 					new_fish = malloc(sizeof(Fish_Pool));
 					new_fish->food_level = 0;
 					new_fish->pop_level = 1;
-					new_fish->pos_x = new_pos % settings.size_x;
-					new_fish->pos_y = new_pos / settings.size_x;;
+					/* fish->pos_x = new_pos % settings.size_x;
+					fish->pos_y = new_pos / settings.size_y; */
+					new_fish->pos_x = new_pos / settings.size_y;
+					new_fish->pos_y = new_pos % settings.size_y;
 					new_fish->reprod_counter = 1;
 					fishery->vegetation_layer[new_pos].local_fish = new_fish;
 					LListAdd(fishery->fish_list, new_fish);
@@ -440,7 +445,8 @@ void UpdateFisheryFishPopulation(
 			}
 		}
 		if (for_deletion != NULL) {
-			fish_pos = fish->pos_x + fish->pos_y*settings.size_x;
+			/* fish_pos = fish->pos_x + fish->pos_y*settings.size_x; */
+			fish_pos = fish->pos_y + fish->pos_x*settings.size_y;
 			fishery->vegetation_layer[fish_pos].local_fish = NULL;
 			if (fishery->fish_list != for_deletion) {
 				/* If the fish is not the first fish in the list, move pointer to next fish. */
@@ -473,8 +479,10 @@ void UpdateFisheryFishPopulation(
 				new_fish = malloc(sizeof(Fish_Pool));
 				new_fish->food_level = 0;
 				new_fish->pop_level = 1;
-				new_fish->pos_x = new_pos % settings.size_x;
-				new_fish->pos_y = new_pos / settings.size_x;
+				/* new_fish->pos_x = new_pos % settings.size_x;
+				new_fish->pos_y = new_pos / settings.size_y; */
+				new_fish->pos_x = new_pos / settings.size_y;
+				new_fish->pos_y = new_pos % settings.size_y;
 				new_fish->reprod_counter = 1;
 				LListAdd(fishery->fish_list, new_fish);
 				fishery->vegetation_layer[new_pos].local_fish = new_fish;
@@ -522,7 +530,8 @@ int FishingEvent(
 			fish->pop_level--;
 			if (fish->pop_level <= 0) {
 				yield++;
-				fish_pos = fish->pos_x + fish->pos_y*settings.size_x;
+				/* fish_pos = fish->pos_x + fish->pos_y*settings.size_x; */
+				fish_pos = fish->pos_y + fish->pos_x*settings.size_y;
 				for_deletion = fish_node;
 				if (fishery->fish_list != fish_node) {
 					/* If the fish is not the first fish in the list. */

@@ -187,8 +187,10 @@ int GetNewCoords(
 		/* Invalid current coordinates. */
 		return -1;
 	/* Find possible coordinates. */
-	coords_x = cur_coords % size_x;
-	coords_y = cur_coords / size_x;
+	/* coords_x = cur_coords % size_x; */
+	coords_x = cur_coords / size_y;
+	/* coords_y = cur_coords / size_x; */
+	coords_y = cur_coords % size_y;
 	start_x = coords_x - radius < 0 ? 0 : coords_x - radius;
 	start_y = coords_y - radius < 0 ? 0 : coords_y - radius;
 	end_x = coords_x + radius > size_x - 1 ? size_x - 1 : coords_x + radius;
@@ -197,7 +199,8 @@ int GetNewCoords(
 	/* Determine if vegetation tile is empty. */
 	for (i = start_x; i <= end_x; i++) {
 		for (j = start_y; j <= end_y;j++ ) {
-			candidate_coords = i + j*size_x;
+			/* candidate_coords = i + j*size_x; */
+			candidate_coords = j + i*size_y;
 			if (fishery->vegetation_layer[candidate_coords].local_fish == NULL &&
 				candidate_coords != cur_coords) {
 				poss_coords[valid_coords] = candidate_coords;
