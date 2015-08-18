@@ -251,11 +251,12 @@ results     - Results of simulation run, including total amount of fish present
 */
 Fishery_Results UpdateFishery(
 	Fishery *fishery, Fishery_Settings settings, int n) {
-	int i, fish_n=0;
+	int i, j, fish_n=0;
 	LList_Node *node;
 	Fishery_Results results;
 	Fish_Pool *fish;
 	
+	results.vegetation_n = 0;
 	results.fish_n = 0;
 	results.yield = 0;
 	results.steps = n;
@@ -277,6 +278,9 @@ Fishery_Results UpdateFishery(
 		}
 		if (settings.fishing_chance > 0) {
 			results.yield += FishingEvent(fishery, settings);
+		}
+		for (j = 0; j < settings.size_x*settings.size_y; j++) {
+			results.vegetation_n += fishery->vegetation_layer[j].vegetation_level;
 		}
 	}
 	return results;
