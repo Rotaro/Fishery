@@ -248,8 +248,8 @@ PyObject *MPyUpdateFishery(PyObject *self, PyObject *args) {
 		return NULL;
 	/* Check number of steps to progress simulation is 
 	   reasonable. */
-	if (n < 0 || n > 10000) {
-		PyErr_Format(PyExc_ValueError, "Amount of steps invalid (%d). Should be larger than 0 and smaller than 10000.\n", n);
+	if (n < 0 || n > 100000) {
+		PyErr_Format(PyExc_ValueError, "Amount of steps invalid (%d). Should be larger than 0 and smaller than 100000.\n", n);
 		return NULL;
 	}
 	/* Find correct fishery. */
@@ -268,7 +268,8 @@ PyObject *MPyUpdateFishery(PyObject *self, PyObject *args) {
 	}
 	/* Update fishery and save results in python data types. */
 	results = UpdateFishery(fishery, (*(fishery->settings)), n);
-	results_py = Py_BuildValue("[iiii]", results.fish_n, results.yield, results.vegetation_n, results.steps);
+	results_py = Py_BuildValue("[iiidddi]", results.fish_n, results.yield, results.vegetation_n, 
+		results.fish_n_std_dev, results.yield_std_dev, results.vegetation_n_std_dev, results.steps);
 	if (!results_py)
 		return NULL;
 	

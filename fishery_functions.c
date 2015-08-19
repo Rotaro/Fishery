@@ -1,7 +1,7 @@
 /*
 fishery_functions.c
 
-Contains all functions which create, manipulate or return simulation instances.
+Contains all functions which create or manipulate fisheries.
 
 */
 
@@ -10,19 +10,32 @@ Contains all functions which create, manipulate or return simulation instances.
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <math.h>
 
+/* setting_order, settings_size and list_indexes_sizes are used to parse settings in the python module.*/
 const char *setting_order[] = { "size_x", "size_y",
 "initial_vegetation_size", "vegetation_level_max", "vegetation_level_spread_at", "vegetation_level_growth_req",
 "soil_energy_max", "soil_energy_increase_turn",
 "vegetation_consumption", 
 "initial_fish_size", "fish_level_max", "fish_growth_req", "fish_moves_turn",
 "fish_consumption", "random_fishes_interval", "split_fishes_at_max", "fishing_chance"};
-
 const int settings_size = 17;
 const int list_indexes_sizes[] =  {8, 3, 13, 10};
 
+/* Function CheckFishMemory()
+Temporary function used to check no mistakes are made when fish pools are moved
+around in the simulation, i.e. the fishing list contains the same information
+as the vegetation layer.
+
+Input parameters:
+fishery      - Pointer to fishery to memory of.
+settings	 - Settings of fishery.
+
+Output parameters:
+memory_ok	 - 1 if memories match, 0 otherwise.
+*/
 int CheckFishMemory(Fishery *fishery, Fishery_Settings settings) {
-	int pos;
+	int pos, memory_ok=1;
 	LList_Node *node;
 	Fish_Pool *fish;
 
@@ -38,19 +51,23 @@ int CheckFishMemory(Fishery *fishery, Fishery_Settings settings) {
 		pos = fish->pos_y + fish->pos_x*settings.size_y;
 		if (fishery->vegetation_layer[pos].local_fish != fish) {
 			printf("Fish memory doesn't match.\n");
-			return 0;
+			memory_ok = 0;
+			return memory_ok;
 		}
 		node = node->next;
 	}
 	/* printf("Fish memory matches.\n"); */
-	return 1;
+	return memory_ok;
 }
 
 /*  Function ValidateSettings()
-Validates fishery simulation settings, i.e. checks for impossible values
-which would break the simulation.
+Validates fishery settings, i.e. checks for impossible values
+which would break the simulation. Returns 1 on success, 0
+if invalid settings.
 
-settings - Settings to be validated.
+settings	 - Settings to be validated.
+output_print - If 1, prints output regarding invalid settings. 
+			   If 0, no output is printed.
 */
 int ValidateSettings(Fishery_Settings settings, int output_print) {
 	int settings_valid = 1, i;
@@ -134,9 +151,10 @@ int ValidateSettings(Fishery_Settings settings, int output_print) {
 	return settings_valid;
 }
 /* Function CreateSettings()
-	Creates settings struct which is used in functions manipulating the fishery.
-	See documentation elsewhere for details regarding function parameters.
-	Returns settings struct.
+	Creates Settings structure which is used in functions which manipulate the 
+	fishery. See documentation elsewhere for the settings parameters.
+
+	Returns settings structure.
 */
 Fishery_Settings CreateSettings(
 	int size_x, int size_y, int initial_vegetation_size,
@@ -239,8 +257,11 @@ Fishery *CreateFishery(
 }
 /* Function UpdateFishery().
 
-Progresses the simulation n steps using the given settings. Returns
-the amount of fish present at every simulation step.
+Progresses the fishery n steps using the given settings. Returns
+the results of the simulation steps in a Fishery_Result structure. 
+The results contain total vegetation level, total fish population 
+and total fishing yield, as well as their standard deviations. See 
+the Fishery_Results structure for details.
 
 fishery		- Initialized or progressed fishery.
 settings	- Settings for fishery.
@@ -251,16 +272,19 @@ results     - Results of simulation run, including total amount of fish present
 */
 Fishery_Results UpdateFishery(
 	Fishery *fishery, Fishery_Settings settings, int n) {
-	int i, j, fish_n=0;
+	int i, j, fish_n=0, tmp_yield, tmp_fish_n, tmp_vegetation_n;
 	LList_Node *node;
 	Fishery_Results results;
 	Fish_Pool *fish;
 	
 	results.vegetation_n = 0;
+	results.vegetation_n_std_dev = 0.0;
 	results.fish_n = 0;
+	results.fish_n_std_dev = 0.0;
 	results.yield = 0;
+	results.yield_std_dev = 0.0;
 	results.steps = n;
-
+	
 	if (n < 0) {
 		exit(EXIT_FAILURE);
 		printf("Step amount to progress simulation less than zero: %d.\n", n);
@@ -270,22 +294,40 @@ Fishery_Results UpdateFishery(
 		UpdateFisheryVegetation(fishery, settings);
 		/* Update fish population. */
 		UpdateFisheryFishPopulation(fishery, settings);
+		tmp_fish_n = 0;
 		node = fishery->fish_list;
 		while (node != NULL && node->node_value != NULL) {
 			fish = node->node_value;
-			results.fish_n += fish->pop_level;
+			tmp_fish_n += fish->pop_level;
 			node = node->next;
 		}
+		results.fish_n += tmp_fish_n;
+		results.fish_n_std_dev += tmp_fish_n*tmp_fish_n;
 		if (settings.fishing_chance > 0) {
-			results.yield += FishingEvent(fishery, settings);
+			tmp_yield = FishingEvent(fishery, settings);
+			results.yield += tmp_yield;
+			results.yield_std_dev += tmp_yield*tmp_yield;
 		}
+		tmp_vegetation_n = 0;
 		for (j = 0; j < settings.size_x*settings.size_y; j++) {
-			results.vegetation_n += fishery->vegetation_layer[j].vegetation_level;
+			tmp_vegetation_n += fishery->vegetation_layer[j].vegetation_level;
 		}
+		results.vegetation_n += tmp_vegetation_n;
+		results.vegetation_n_std_dev += tmp_vegetation_n*tmp_vegetation_n;
 	}
+	results.vegetation_n_std_dev = sqrt(results.vegetation_n_std_dev / n - pow((double) results.vegetation_n / n, 2));
+	results.fish_n_std_dev = sqrt(results.fish_n_std_dev / n - pow((double) results.fish_n / n, 2));
+	results.yield_std_dev = sqrt(results.yield_std_dev / n - pow((double) results.yield / n, 2));
 	return results;
 }
+/* Function UpdateFisheryVegetation().
 
+Increases soil energy and grows the vegetation layer as necessary.
+
+fishery		- Initialized or progressed fishery.
+settings	- Settings for fishery.
+
+*/
 void UpdateFisheryVegetation(
 	Fishery
 	*fishery, Fishery_Settings settings) {
@@ -349,8 +391,8 @@ void UpdateFisheryVegetation(
 /* Function UpdateFisheryFishPopulation().
 
 Updates the fish population of the fishery simulation. This includes
-growing fish pools, moving fish around in search of food and consuming
-vegetation. Also generates new fish pools.
+growing fish pools, moving fish pools around in search of food and 
+consuming vegetation. Also generates new fish pools.
 
 fishery		- Initialized or progressed fishery.
 settings	- Settings for fishery.
@@ -512,18 +554,19 @@ void DestroyFishery(Fishery *fishery) {
 }
 /* Function FishingEvent().
 
-Releases the fishing boats! Fish pools lose one population 
-depending on the fishing_chance in the settings. Returns the yield
+Releases the fishing boats! Depending on the fishing chance, fish pools
+lose a random amount of their population. Returns the yield
 of the fishing event.
 
 fishery		- Initialized or progressed fishery.
 settings	- Settings for fishery.
 
-yield		- Amount of fish population reduced.
+yield		- Fish population lost during event. 
+
 */
 int FishingEvent(
 	Fishery *fishery, Fishery_Settings settings) {
-	int yield=0, fish_pos;
+	int yield=0, fish_pos, tot_yield=0;
 	LList_Node *fish_node, *for_deletion=NULL;
 	Fish_Pool *fish;
 
@@ -531,9 +574,10 @@ int FishingEvent(
 	while (fish_node != NULL && fish_node->node_value != NULL) {
 		fish = fish_node->node_value;
 		if (rand() / (double)(RAND_MAX + 1) <= settings.fishing_chance) {
-			fish->pop_level--;
-			if (fish->pop_level <= 0) {
-				yield++;
+			yield = (int) round(rand() / (double)(RAND_MAX + 1) * fish->pop_level);
+			fish->pop_level -= yield;
+			tot_yield += yield;
+			if (fish->pop_level <= 0) {		
 				/* fish_pos = fish->pos_x + fish->pos_y*settings.size_x; */
 				fish_pos = fish->pos_y + fish->pos_x*settings.size_y;
 				for_deletion = fish_node;
@@ -549,5 +593,5 @@ int FishingEvent(
 		else
 			fish_node = fish_node->next;
 	}
-	return yield;
+	return tot_yield;
 }

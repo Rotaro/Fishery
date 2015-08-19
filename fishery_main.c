@@ -1,4 +1,4 @@
-// main.c : Defines the entry point for the console application.
+// main.c : Various tests to check program.
 //
 
 #include <stdio.h>
@@ -17,14 +17,13 @@ int main(void)
 {
 	Fishery_Settings settings;
 	Fishery *fishery;
+	Fishery_Results results;
 	Fish_Pool *fish;
 	LList_Node *ptr;
 
 	int vegetation_requirements[] = {0, 1, 1, 2, 2, 3 };
 	int fish_requirements[] = { 0, 1, 2, 3, 4, 5};
 	int i, j, tt = 1, k=0;
-
-	double total_yield=0.0;
 
 	if (RUN_TESTS == 1)
 		assert(TestFisheryAll() == 1);
@@ -113,14 +112,10 @@ int main(void)
 			}
 			printf("-----------\n");
 			scanf("%d", &tt);
-			for (j = 0; j < tt; j++){
-				for (i = 0; i < 1; i++) {
-					UpdateFishery(fishery, settings, 1);
-					total_yield += FishingEvent(fishery, settings);
-				}
-			}
-			printf("Yield was: %f\n", total_yield / tt);
-			total_yield = 0.0;
+			results = UpdateFishery(fishery, settings, tt);
+			printf("Yield was: %f (%f)\n", (double) results.yield / tt, results.yield_std_dev);
+			printf("Fish pop was: %f (%f)\n", (double)results.fish_n / tt, results.fish_n_std_dev);
+			printf("Vegetation level was: %f (%f)\n", (double)results.vegetation_n / tt, results.vegetation_n_std_dev);
 		}
 	}
 	return EXIT_SUCCESS;

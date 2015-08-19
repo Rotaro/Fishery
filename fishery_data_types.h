@@ -67,6 +67,10 @@ typedef struct fishery_results
 	int fish_n;
 	int vegetation_n;
 
+	double yield_std_dev;
+	double fish_n_std_dev;
+	double vegetation_n_std_dev;
+
 	int steps;
 } Fishery_Results;
 
