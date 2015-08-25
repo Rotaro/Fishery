@@ -166,6 +166,7 @@ void FreeInt(void *value) {
 /* Function GetNewCoords().
 Generates new, random coordinates for fish pool. New coordinates
 are checked to be not out of bounds and to not contain any fish pools.
+Coordinates are prioritized according to vegetation level.
 Returns -1 if no coordinates can be generated.
 
 cur_coords	- Current coordinates of fish pool in one dimension.
@@ -180,8 +181,9 @@ Returns -1 if no possible coordinates are available.
 */
 int GetNewCoords(
 	int cur_coords, int radius, int size_x, int size_y, Fishery *fishery) {
-	int i, j, new_pos = -1, coords_x, coords_y, *poss_coords, candidate_coords,
-		start_x, start_y, end_x, end_y, valid_coords=0, rand_number=0;
+	int i, j, new_pos = -1, coords_x, coords_y, *poss_coords, *poss_veg_coords,
+		candidate_coords, start_x, start_y, end_x, end_y, valid_coords = 0,
+		valid_veg_coords = 0, rand_number=0;
 
 	if (cur_coords < 0 || cur_coords > size_x*size_y - 1)
 		/* Invalid current coordinates. */
@@ -195,13 +197,23 @@ int GetNewCoords(
 	start_y = coords_y - radius < 0 ? 0 : coords_y - radius;
 	end_x = coords_x + radius > size_x - 1 ? size_x - 1 : coords_x + radius;
 	end_y = coords_y + radius > size_y - 1 ? size_y - 1 : coords_y + radius;
-	poss_coords = malloc(sizeof(int)*(end_x - start_x + 1)*(end_y - start_y + 1));
-	/* Determine if vegetation tile is empty. */
+	poss_coords = malloc(sizeof(int)* // for all coords
+		(end_x - start_x + 1)*(end_y - start_y + 1));
+	poss_veg_coords = malloc(sizeof(int)* // for coords with vegetation
+		(end_x - start_x + 1)*(end_y - start_y + 1));
+	/* Determine if vegetation tile is empty of fish and if it contains
+	vegetation. */
 	for (i = start_x; i <= end_x; i++) {
 		for (j = start_y; j <= end_y;j++ ) {
 			/* candidate_coords = i + j*size_x; */
 			candidate_coords = j + i*size_y;
 			if (fishery->vegetation_layer[candidate_coords].local_fish == NULL &&
+				candidate_coords != cur_coords && 
+				fishery->vegetation_layer[candidate_coords].vegetation_level > 1) {
+				poss_veg_coords[valid_veg_coords] = candidate_coords;
+				valid_veg_coords++;
+			}
+			else if (fishery->vegetation_layer[candidate_coords].local_fish == NULL &&
 				candidate_coords != cur_coords) {
 				poss_coords[valid_coords] = candidate_coords;
 				valid_coords++;
@@ -209,12 +221,17 @@ int GetNewCoords(
 		}
 	}
 	/* Choose random coordinates if possible.*/
+	if (valid_veg_coords) {
+		rand_number = (int)(rand() / (double)(RAND_MAX + 1) * valid_veg_coords);
+		new_pos = poss_veg_coords[rand_number];
+	}
 	if (valid_coords > 0) {
 		rand_number = (int)(rand() / (double) (RAND_MAX + 1) * valid_coords);
 		new_pos = poss_coords[rand_number];
 	}
 
 	free(poss_coords);
+	free(poss_veg_coords);
 	return new_pos;
 }
 int ComparePointers(const void *ptr1, const void *ptr2) {

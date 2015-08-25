@@ -25,6 +25,8 @@ int main(void)
 	int fish_requirements[] = { 0, 1, 2, 3, 4, 5};
 	int i, j, tt = 1, k=0;
 
+	srand((unsigned int)time(NULL));
+
 	if (RUN_TESTS == 1)
 		assert(TestFisheryAll() == 1);
 
@@ -61,9 +63,9 @@ int main(void)
 
 	if (RUN_PROGRAM == 1) {
 
-		settings = CreateSettings(12, 10,
+		settings = CreateSettings(10, 10,
 			80, 5, 3, 3, 10, 3, vegetation_requirements,
-			10, 5, 3, 3, fish_requirements, 10, 1, 0.15);
+			10, 5, 3, 6, fish_requirements, 2, 1, 0.2);
 		printf("Settings validated and created!\n");
 		printf("---------------------\n");
 		fishery = CreateFishery(settings);
@@ -112,7 +114,11 @@ int main(void)
 			}
 			printf("-----------\n");
 			scanf("%d", &tt);
-			results = UpdateFishery(fishery, settings, tt);
+			for (i = 0; i < 100; i++) {
+				fishery = CreateFishery(settings);
+				results = UpdateFishery(fishery, settings, tt);
+				printf("%d, %d, %d\n", results.fish_n, results.yield, results.debug_stuff);
+			}
 			printf("Yield was: %f (%f)\n", (double) results.yield / tt, results.yield_std_dev);
 			printf("Fish pop was: %f (%f)\n", (double)results.fish_n / tt, results.fish_n_std_dev);
 			printf("Vegetation level was: %f (%f)\n", (double)results.vegetation_n / tt, results.vegetation_n_std_dev);

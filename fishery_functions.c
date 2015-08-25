@@ -72,20 +72,20 @@ output_print - If 1, prints output regarding invalid settings.
 int ValidateSettings(Fishery_Settings settings, int output_print) {
 	int settings_valid = 1, i;
 
-	if (settings.size_x <= 0) {
+	if (settings.size_x <= 0 || settings.size_x > 1000) {
 		settings_valid = 0;
 		if (output_print == 1) printf("size_x is invalid (%d).\n", settings.size_x);
 	}
-	if (settings.size_y <= 0) {
+	if (settings.size_y <= 0 || settings.size_y > 1000) {
 		settings_valid = 0;
 		if (output_print == 1) printf("size_y is invalid (%d).\n", settings.size_y);
 	}
 
-	if (settings.initial_vegetation_size < 0) {
+	if (settings.initial_vegetation_size < 0 || settings.initial_vegetation_size > settings.size_x*settings.size_y) {
 		settings_valid = 0;
 		if (output_print == 1) printf("initial_vegetation_size is invalid (%d).\n", settings.initial_vegetation_size);
 	}
-	if (settings.vegetation_level_max <= 0) {
+	if (settings.vegetation_level_max <= 0 || settings.vegetation_level_max > 100) {
 		settings_valid = 0;
 		if (output_print == 1) printf("vegetation_level_max is invalid (%d).\n", settings.vegetation_level_max);
 	}
@@ -93,7 +93,7 @@ int ValidateSettings(Fishery_Settings settings, int output_print) {
 		settings_valid = 0;
 		if (output_print == 1) printf("vegetation_level_spread_at is invalid (%d).\n", settings.vegetation_level_spread_at);
 	}
-	if (settings.vegetation_level_growth_req < 0) {
+	if (settings.vegetation_level_growth_req < 0 || settings.vegetation_level_growth_req > 100) {
 		settings_valid = 0;
 		if (output_print == 1) printf("vegetation_level_growth_req is invalid (%d).\n", settings.vegetation_level_growth_req);
 	}
@@ -104,28 +104,28 @@ int ValidateSettings(Fishery_Settings settings, int output_print) {
 		}
 	}
 
-	if (settings.soil_energy_increase_turn < 0) {
+	if (settings.soil_energy_increase_turn < 0 || settings.soil_energy_increase_turn > 100) {
 		settings_valid = 0;
 		if (output_print == 1) printf("soil_energy_increase_turn is invalid (%d).\n", settings.soil_energy_increase_turn);
 	}
-	if (settings.soil_energy_max < 0) {
+	if (settings.soil_energy_max < 0 || settings.soil_energy_max > 1000) {
 		settings_valid = 0;
 		if (output_print == 1) printf("soil_energy_max is invalid (%d).\n", settings.soil_energy_max);
 	}
 
-	if (settings.initial_fish_size < 0) {
+	if (settings.initial_fish_size < 0 || settings.initial_fish_size > settings.size_x*settings.size_y) {
 		settings_valid = 0;
 		if (output_print == 1) printf("initial_fish_size is invalid (%d).\n", settings.initial_fish_size);
 	}
-	if (settings.fish_growth_req < 0) {
+	if (settings.fish_growth_req < 0 || settings.fish_growth_req > 100) {
 		settings_valid = 0;
 		if (output_print == 1) printf("fish_growth_req is invalid (%d).\n", settings.fish_growth_req);
 	}
-	if (settings.fish_level_max < 0) {
+	if (settings.fish_level_max < 0 || settings.fish_level_max > 100) {
 		settings_valid = 0;
 		if (output_print == 1) printf("fish_level_max is invalid (%d).\n", settings.fish_level_max);
 	}
-	if (settings.fish_moves_turn < 0) {
+	if (settings.fish_moves_turn < 0 || settings.fish_moves_turn > 100) {
 		settings_valid = 0;
 		if (output_print == 1) printf("fish_moves_turn is invalid (%d).\n", settings.fish_moves_turn);
 	}
@@ -135,17 +135,17 @@ int ValidateSettings(Fishery_Settings settings, int output_print) {
 			if (output_print == 1) printf("fish_consumption is invalid (%d).\n", settings.fish_consumption[i]);
 		}
 	}
-	if (settings.random_fishes_interval < 0) {
+	if (settings.random_fishes_interval < 0 || settings.random_fishes_interval > 1000) {
 		settings_valid = 0;
 		if (output_print == 1) printf("random_fishes_interval is invalid (%d).\n", settings.random_fishes_interval);
 	}
-	if (settings.split_fishes_at_max < 0) {
+	if (settings.split_fishes_at_max < 0 || settings.split_fishes_at_max > settings.fish_level_max) {
 		settings_valid = 0;
 		if (output_print == 1) printf("split_fishes_at_max is invalid (%d).\n", settings.split_fishes_at_max);
 	}
 	if (settings.fishing_chance < 0.0 || settings.fishing_chance > 1.0) {
 		settings_valid = 0;
-		if (output_print == 1) printf("fishing_chance is invalid (%d).\n", settings.fishing_chance);
+		if (output_print == 1) printf("fishing_chance is invalid (%f).\n", settings.fishing_chance);
 	}
 
 	return settings_valid;
@@ -207,8 +207,7 @@ Fishery *CreateFishery(
 	Fishery *fishery;
 	Fish_Pool *fish;
 	int i, pos, *pos_avail;
-
-	srand((unsigned int) time(NULL));
+		
 	fishery = malloc(sizeof(Fishery));
 	fishery->fish_list = NULL;
 	/* Vegetation tiles - reserve memory and initialize tiles. */	
@@ -284,6 +283,8 @@ Fishery_Results UpdateFishery(
 	results.yield = 0;
 	results.yield_std_dev = 0.0;
 	results.steps = n;
+
+	results.debug_stuff = 0;
 	
 	if (n < 0) {
 		exit(EXIT_FAILURE);
@@ -301,9 +302,12 @@ Fishery_Results UpdateFishery(
 			tmp_fish_n += fish->pop_level;
 			node = node->next;
 		}
+		if (tmp_fish_n == 0) {
+			results.debug_stuff++;
+		}
 		results.fish_n += tmp_fish_n;
 		results.fish_n_std_dev += tmp_fish_n*tmp_fish_n;
-		if (settings.fishing_chance > 0) {
+		if (settings.fishing_chance > 0.0) {
 			tmp_yield = FishingEvent(fishery, settings);
 			results.yield += tmp_yield;
 			results.yield_std_dev += tmp_yield*tmp_yield;
@@ -318,6 +322,9 @@ Fishery_Results UpdateFishery(
 	results.vegetation_n_std_dev = sqrt(results.vegetation_n_std_dev / n - pow((double) results.vegetation_n / n, 2));
 	results.fish_n_std_dev = sqrt(results.fish_n_std_dev / n - pow((double) results.fish_n / n, 2));
 	results.yield_std_dev = sqrt(results.yield_std_dev / n - pow((double) results.yield / n, 2));
+	if (results.debug_stuff > n*0.9) {
+		ValidateSettings(*(fishery->settings), 1);
+	}
 	return results;
 }
 /* Function UpdateFisheryVegetation().
@@ -403,9 +410,7 @@ void UpdateFisheryFishPopulation(
 	LList_Node *fish_node, *for_deletion = NULL, *tmp_fish_node;
 	Fish_Pool *fish, *new_fish, *first_added = NULL;
 	int fish_pos, avail_moves, appetite, consumed, new_pos, i, pos_avail_n, *pos_avail;
-	static int random_fishes_counter = 0;
-
-	assert(CheckFishMemory(fishery, settings));
+	double random_fishes_counter = settings.random_fishes_interval / 100.0;
 
 	/* Process fish population. */
 	fish_node = fishery->fish_list;
@@ -437,7 +442,7 @@ void UpdateFisheryFishPopulation(
 			}
 			if (fishery->vegetation_layer[fish_pos].vegetation_level > 0) {
 				/* If food at current tile. */
-				appetite = fish->pop_level * 2; /* Amount possible for fish to eat. (at the moment twice the population size)*/
+				appetite = settings.fish_consumption[fish->pop_level] * 2 + settings.fish_growth_req - fish->food_level; /* Amount possible for fish to eat.*/
 				consumed = appetite > fishery->vegetation_layer[fish_pos].vegetation_level ?
 					fishery->vegetation_layer[fish_pos].vegetation_level : appetite; /* Amount actually consumed based on available food. */
 				fish->food_level += consumed;
@@ -447,12 +452,14 @@ void UpdateFisheryFishPopulation(
 		}
 		/* fish_pos = fish->pos_x + fish->pos_y*settings.size_x; */
 		fish_pos = fish->pos_y + fish->pos_x*settings.size_y;
-		if (fish->food_level >= settings.fish_growth_req + fish->pop_level) {
+		if (fish->food_level >= settings.fish_growth_req + settings.fish_consumption[fish->pop_level]) {	
 			/* If enough food for growth present. */ 
 			if (fish->pop_level < settings.fish_level_max) {
 				/* Grow fish pool if not max size. */
-				fish->pop_level++;
-				fish->food_level -= (settings.fish_growth_req + fish->pop_level);
+				while (fish->food_level >= settings.fish_growth_req + settings.fish_consumption[fish->pop_level] && fish->pop_level < settings.fish_level_max) {
+					fish->pop_level++;
+					fish->food_level -= (settings.fish_growth_req + settings.fish_consumption[fish->pop_level]);
+				}
 			}
 			else {
 				/* Split fish pool. */
@@ -509,7 +516,7 @@ void UpdateFisheryFishPopulation(
 		}
 	}
 	if (settings.random_fishes_interval) {
-		if (++random_fishes_counter == settings.random_fishes_interval) {
+		if (random_fishes_counter <= rand() / ((double) RAND_MAX + 1)) {
 			/* Spawn random fish at specified intervals. Start by finding 
 			   available positions for fishes. */
 			pos_avail = malloc(sizeof(int)*settings.size_x*settings.size_y);
@@ -573,8 +580,10 @@ int FishingEvent(
 	fish_node = fishery->fish_list;
 	while (fish_node != NULL && fish_node->node_value != NULL) {
 		fish = fish_node->node_value;
-		if (rand() / (double)(RAND_MAX + 1) <= settings.fishing_chance) {
-			yield = (int) round(rand() / (double)(RAND_MAX + 1) * fish->pop_level);
+		if (rand() / (double)(RAND_MAX + 1) < settings.fishing_chance) {
+			// yield = (int) round(rand() / (double)(RAND_MAX + 1) * (fish->pop_level/2+1));
+			//yield = (int) ceil(fish->pop_level*settings.fishing_chance);
+			yield = fish->pop_level;
 			fish->pop_level -= yield;
 			tot_yield += yield;
 			if (fish->pop_level <= 0) {		

@@ -98,6 +98,8 @@ fishery_functions.c.
 PyObject *MPyGetFisherySettingOrder(PyObject *self) {
 	PyObject *py_setting_order, *item;
 	int i;
+
+	srand((unsigned int)time(NULL));
 	
 	py_setting_order = PyList_New(settings_size);
 	if (!py_setting_order) /* PyList_New sets exception. */
@@ -268,8 +270,8 @@ PyObject *MPyUpdateFishery(PyObject *self, PyObject *args) {
 	}
 	/* Update fishery and save results in python data types. */
 	results = UpdateFishery(fishery, (*(fishery->settings)), n);
-	results_py = Py_BuildValue("[iiidddi]", results.fish_n, results.yield, results.vegetation_n, 
-		results.fish_n_std_dev, results.yield_std_dev, results.vegetation_n_std_dev, results.steps);
+	results_py = Py_BuildValue("[iiidddii]", results.fish_n, results.yield, results.vegetation_n, 
+		results.fish_n_std_dev, results.yield_std_dev, results.vegetation_n_std_dev, results.steps, results.debug_stuff);
 	if (!results_py)
 		return NULL;
 	
