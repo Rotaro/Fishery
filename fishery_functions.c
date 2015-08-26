@@ -141,7 +141,7 @@ int ValidateSettings(Fishery_Settings settings, int output_print) {
 	}
 	if (settings.split_fishes_at_max < 0 || settings.split_fishes_at_max > settings.fish_level_max) {
 		settings_valid = 0;
-		if (output_print == 1) printf("split_fishes_at_max is invalid (%d).\n", settings.split_fishes_at_max);
+		if (output_print == 1) printf("split_fishes_at_max is invalid (%d), fish_level_max: %d.\n", settings.split_fishes_at_max, settings.fish_level_max);
 	}
 	if (settings.fishing_chance < 0.0 || settings.fishing_chance > 1.0) {
 		settings_valid = 0;
@@ -420,7 +420,7 @@ void UpdateFisheryFishPopulation(
 		/* fish_pos = fish->pos_x + fish->pos_y*settings.size_x; */
 		/* Consume food and move if needed. */
 		avail_moves = settings.fish_moves_turn;
-		while (avail_moves > 0 && fish->food_level < fish->pop_level * 2 + settings.fish_growth_req) {
+		while (avail_moves > 0 && fish->food_level < settings.fish_consumption[fish->pop_level]* 2 + settings.fish_growth_req) {
 			fish_pos = fish->pos_y + fish->pos_x*settings.size_y;
 			/* fish_pos = fish->pos_x + fish->pos_y*settings.size_x; */
 			if (fishery->vegetation_layer[fish_pos].vegetation_level == 0) {
@@ -442,18 +442,23 @@ void UpdateFisheryFishPopulation(
 			}
 			if (fishery->vegetation_layer[fish_pos].vegetation_level > 0) {
 				/* If food at current tile. */
-				appetite = settings.fish_consumption[fish->pop_level] * 2 + settings.fish_growth_req - fish->food_level; /* Amount possible for fish to eat.*/
-				consumed = appetite > fishery->vegetation_layer[fish_pos].vegetation_level ?
-					fishery->vegetation_layer[fish_pos].vegetation_level : appetite; /* Amount actually consumed based on available food. */
+				/* Amount possible for fish to eat.*/
+				appetite = settings.fish_consumption[fish->pop_level] * 2 +
+					settings.fish_growth_req - fish->food_level; 
+				/* Amount actually consumed based on available food. */
+				consumed = appetite > fishery->vegetation_layer[fish_pos].
+					vegetation_level ? fishery->vegetation_layer[fish_pos].
+				    vegetation_level : appetite; 
 				fish->food_level += consumed;
-				fishery->vegetation_layer[fish_pos].vegetation_level -= consumed;
+				fishery->vegetation_layer[fish_pos].vegetation_level 
+					-= consumed;
 			}
 			avail_moves--;
 		}
 		/* fish_pos = fish->pos_x + fish->pos_y*settings.size_x; */
 		fish_pos = fish->pos_y + fish->pos_x*settings.size_y;
 		if (fish->food_level >= settings.fish_growth_req + settings.fish_consumption[fish->pop_level]) {	
-			/* If enough food for growth present. */ 
+			/* If enough food for growth or split present. */ 
 			if (fish->pop_level < settings.fish_level_max) {
 				/* Grow fish pool if not max size. */
 				while (fish->food_level >= settings.fish_growth_req + settings.fish_consumption[fish->pop_level] && fish->pop_level < settings.fish_level_max) {
@@ -462,12 +467,11 @@ void UpdateFisheryFishPopulation(
 				}
 			}
 			else {
-				/* Split fish pool. */
+				/* Else split fish pool. */
 				new_pos = GetNewCoords(fish_pos, 1, settings.size_x, settings.size_y, fishery);
 				if (new_pos != -1 && settings.split_fishes_at_max) {
 					/* Position for splitting available. */
-					fish->food_level -= (settings.fish_growth_req + fish->pop_level);
-					fish->pop_level--;
+					fish->food_level -= (settings.fish_growth_req + settings.fish_consumption[fish->pop_level]);
 					new_fish = malloc(sizeof(Fish_Pool));
 					new_fish->food_level = 0;
 					new_fish->pop_level = 1;
@@ -517,7 +521,7 @@ void UpdateFisheryFishPopulation(
 	}
 	if (settings.random_fishes_interval) {
 		if (random_fishes_counter <= rand() / ((double) RAND_MAX + 1)) {
-			/* Spawn random fish at specified intervals. Start by finding 
+			/* Spawn fish randomly. Start by finding 
 			   available positions for fishes. */
 			pos_avail = malloc(sizeof(int)*settings.size_x*settings.size_y);
 			pos_avail_n = 0;
@@ -580,7 +584,7 @@ int FishingEvent(
 	fish_node = fishery->fish_list;
 	while (fish_node != NULL && fish_node->node_value != NULL) {
 		fish = fish_node->node_value;
-		if (rand() / (double)(RAND_MAX + 1) < settings.fishing_chance) {
+		if (rand() / (double)(RAND_MAX + 1) <= settings.fishing_chance) {
 			// yield = (int) round(rand() / (double)(RAND_MAX + 1) * (fish->pop_level/2+1));
 			//yield = (int) ceil(fish->pop_level*settings.fishing_chance);
 			yield = fish->pop_level;
