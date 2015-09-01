@@ -1,11 +1,13 @@
 /* fishery_py_module.c
-Contains the interface functions between python and the fishery implementation in c. Initialized 
-fishery simulations are stored in a global variable with unique IDs, which are returned to the 
-Python callers. Further manipulation of specific simulations requires an ID.
+Contains the interface functions between python and the fishery implementation in c. 
+Initialized fishery simulations are stored in a global variable with unique IDs, which 
+are returned to the Python callers. Further manipulation of specific simulations requires 
+the corresponding ID.
 */
 #include <Python.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "fishery_functions.h"
 
 /*
@@ -24,13 +26,11 @@ extern int settings_size;
 Initializes settings variable and simulation according to provided settings. The 
 fishery is assigned a numerical ID which is returned.
 
-args	- Dictionary of settings. setting names are defined in fishery_functions.c.	  		 
+args	- Dictionary of settings. Setting names are defined in fishery_functions.c.	  		 
 */
 static PyObject *MPyCreateFishery(PyObject *self, PyObject *args) {
-	int i, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, *arg9,
-		arg10, arg11, arg12, arg13, *arg14, arg15, arg16;
-	double arg17;
-	PyObject *dict, *item;
+	int i;
+	PyObject *dict, *list_item;
 	Fishery_Settings *settings;
 	Fishery *fishery;
 
@@ -43,39 +43,56 @@ static PyObject *MPyCreateFishery(PyObject *self, PyObject *args) {
 			PyErr_Format(PyExc_KeyError, setting_order[i]);
 			return NULL;
 		}
-	}	
-	/* Parse given settings. Should make prettier at some point. All references
-	   are borrowed, no need to count references. */
-	arg1 = PyLong_AsLong(PyDict_GetItemString(dict, setting_order[0]));
-	arg2 = PyLong_AsLong(PyDict_GetItemString(dict, setting_order[1]));
-	arg3 = PyLong_AsLong(PyDict_GetItemString(dict, setting_order[2]));
-	arg4 = PyLong_AsLong(PyDict_GetItemString(dict, setting_order[3]));
-	arg5 = PyLong_AsLong(PyDict_GetItemString(dict, setting_order[4]));
-	arg6 = PyLong_AsLong(PyDict_GetItemString(dict, setting_order[5]));
-	arg7 = PyLong_AsLong(PyDict_GetItemString(dict, setting_order[6]));
-	arg8 = PyLong_AsLong(PyDict_GetItemString(dict, setting_order[7]));
-	arg9 = malloc(sizeof(int)*(arg4 + 1));
-	item = PyDict_GetItemString(dict, setting_order[8]);
-	for (i = 0; i < arg4 + 1; i++) {
-		arg9[i] = PyLong_AsLong(PyList_GetItem(item, (Py_ssize_t)i));
 	}
-	arg10 = PyLong_AsLong(PyDict_GetItemString(dict, setting_order[9]));
-	arg11 = PyLong_AsLong(PyDict_GetItemString(dict, setting_order[10]));
-	arg12 = PyLong_AsLong(PyDict_GetItemString(dict, setting_order[11]));
-	arg13 = PyLong_AsLong(PyDict_GetItemString(dict, setting_order[12]));
-	arg14 = malloc(sizeof(int)*(arg11 + 1));
-	item = PyDict_GetItemString(dict, setting_order[13]);
-	for (i = 0; i < arg11 + 1; i++) {
-		arg14[i] = PyLong_AsLong(PyList_GetItem(item, (Py_ssize_t)i));
-	}
-	arg15 = PyLong_AsLong(PyDict_GetItemString(dict, setting_order[14]));
-	arg16 = PyLong_AsLong(PyDict_GetItemString(dict, setting_order[15]));
-	arg17 = PyFloat_AsDouble(PyDict_GetItemString(dict, setting_order[16]));
-	
-	/* Generate ID for simulation, reserve memory and initialize simulation. */
-	settings = malloc(sizeof(Fishery_Settings));
-	*settings = CreateSettings(arg1, arg2, arg3, arg4, arg5, arg6,
-		arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17);
+	/* Parse given settings. Ugly, but avoids dictionary structure / messing around
+	with pointers. All references are borrowed. */
+	settings = (Fishery_Settings*)malloc(sizeof(Fishery_Settings));
+	settings->size_x = (int)PyLong_AsLong(PyDict_GetItemString(dict, "size_x"));
+	settings->size_y = (int)PyLong_AsLong(PyDict_GetItemString(dict, "size_y"));
+	settings->initial_vegetation_size = 
+		(int)PyLong_AsLong(PyDict_GetItemString(dict, "initial_vegetation_size"));
+	settings->vegetation_level_max = 
+		(int)PyLong_AsLong(PyDict_GetItemString(dict, "vegetation_level_max"));
+	settings->vegetation_level_spread_at = 
+		(int)PyLong_AsLong(PyDict_GetItemString(dict, "vegetation_level_spread_at"));
+	settings->vegetation_level_growth_req = 
+		(int)PyLong_AsLong(PyDict_GetItemString(dict, "vegetation_level_growth_req"));
+	settings->soil_energy_max = 
+		(int)PyLong_AsLong(PyDict_GetItemString(dict, "soil_energy_max"));
+	settings->soil_energy_increase_turn = 
+		(int)PyLong_AsLong(PyDict_GetItemString(dict, "soil_energy_increase_turn"));
+	list_item = PyDict_GetItemString(dict, "vegetation_consumption");
+	if (PyList_Check(list_item) == 0)
+		return PyErr_Format(PyExc_TypeError, "vegetation_consumption is not a list.");
+	settings->vegetation_consumption =
+		(int *)malloc(sizeof(int)*(settings->vegetation_level_max + 1));
+	for (i = 0; i < settings->vegetation_level_max + 1; i++)
+		settings->vegetation_consumption[i] = 
+			PyLong_AsLong(PyList_GetItem(list_item, (Py_ssize_t)i));
+
+	settings->initial_fish_size = 
+		(int)PyLong_AsLong(PyDict_GetItemString(dict, "initial_fish_size"));
+	settings->fish_level_max = 
+		(int)PyLong_AsLong(PyDict_GetItemString(dict, "fish_level_max"));
+	settings->fish_growth_req = 
+		(int)PyLong_AsLong(PyDict_GetItemString(dict, "fish_growth_req"));
+	settings->fish_moves_turn = 
+		(int)PyLong_AsLong(PyDict_GetItemString(dict, "fish_moves_turn"));
+	list_item = PyDict_GetItemString(dict, "fish_consumption");
+	if (PyList_Check(list_item) == 0)
+		return PyErr_Format(PyExc_TypeError, "fish_consumption is not a list.");
+	settings->fish_consumption =
+		(int *)malloc(sizeof(int)*(settings->fish_level_max + 1));
+	for (i = 0; i < settings->fish_level_max + 1; i++)
+		settings->fish_consumption[i] =
+		PyLong_AsLong(PyList_GetItem(list_item, (Py_ssize_t)i));
+	settings->random_fishes_interval = 
+		(int)PyLong_AsLong(PyDict_GetItemString(dict, "random_fishes_interval"));
+	settings->split_fishes_at_max = 
+		(int)PyLong_AsLong(PyDict_GetItemString(dict, "split_fishes_at_max"));
+	settings->fishing_chance = 
+		PyFloat_AsDouble(PyDict_GetItemString(dict, "fishing_chance"));
+
 	fishery = CreateFishery(*settings);
 	fishery->fishery_id = fishery_id_n;
 	fishery->settings = settings;
@@ -84,10 +101,7 @@ static PyObject *MPyCreateFishery(PyObject *self, PyObject *args) {
 	if (fishery_llist == NULL)
 		fishery_llist = LListCreate();
 	LListAdd(fishery_llist, fishery);
-	
-	free(arg9);
-	free(arg14);
-	
+		
 	return Py_BuildValue("i", fishery_id_n++);
 }
 /* Function MPyGetFisherySettingOrder()
@@ -106,7 +120,8 @@ PyObject *MPyGetFisherySettingOrder(PyObject *self) {
 		return NULL;
 	for (i = 0; i < settings_size; i++) {
 		item = Py_BuildValue("s", setting_order[i]);
-		if (PyList_SetItem(py_setting_order, i, item) == -1) { /* Steals reference, no need to worry about item. */
+		if (PyList_SetItem(py_setting_order, i, item) == -1) {
+			/* Steals reference, no need to worry about item. */
 			Py_DECREF(py_setting_order);
 			return NULL;
 		}
@@ -168,7 +183,7 @@ PyObject *MPyGetFisheryFishPopulation(PyObject *self, PyObject *args) {
 	Fish_Pool *fish_ptr;
 	LList_Node *node;
 	Fishery *fishery = NULL;
-	int i, fish_population_size = 0, fishery_id, no_error=1;
+	int i, fish_pos, fish_population_size = 0, fishery_id, no_error=1;
 
 	/* Find fishery with provided ID. */
 	if (!PyArg_ParseTuple(args, "i", &fishery_id))
@@ -204,11 +219,13 @@ PyObject *MPyGetFisheryFishPopulation(PyObject *self, PyObject *args) {
 			py_fish = PyList_New(2);
 			if (!py_fish)
 				goto error;
-			/* fish position returned here is for the rotated coordinate system, not the array structure of the c program. */
-			if(PyList_SetItem(py_fish, 0, PyLong_FromLong(fish_ptr->pos_x + fish_ptr->pos_y*fishery->settings->size_x)) == -1 ||
-				PyList_SetItem(py_fish, 1, PyLong_FromLong(fish_ptr->pop_level)) == -1) /* Add fish information. */
+			/* fish position returned here is for the rotated coordinate system,
+			not the array structure of the c program. */
+			fish_pos = fish_ptr->pos_x + fish_ptr->pos_y*fishery->settings->size_x;
+			if(PyList_SetItem(py_fish, 0, PyLong_FromLong(fish_pos)) == -1 ||
+				PyList_SetItem(py_fish, 1, PyLong_FromLong(fish_ptr->pop_level)) == -1)
 				goto error;
-			if (PyList_SetItem(py_fish_list, i, py_fish) == -1) /* Add fish to list. */
+			if (PyList_SetItem(py_fish_list, i, py_fish) == -1) 
 				goto error;
 			node = node->next;
 		}
@@ -251,7 +268,8 @@ PyObject *MPyUpdateFishery(PyObject *self, PyObject *args) {
 	/* Check number of steps to progress simulation is 
 	   reasonable. */
 	if (n < 0 || n > 100000) {
-		PyErr_Format(PyExc_ValueError, "Amount of steps invalid (%d). Should be larger than 0 and smaller than 100000.\n", n);
+		PyErr_Format(PyExc_ValueError, "Amount of steps invalid (%d). \
+			Should be larger than 0 and smaller than 100000.\n", n);
 		return NULL;
 	}
 	/* Find correct fishery. */
@@ -270,8 +288,10 @@ PyObject *MPyUpdateFishery(PyObject *self, PyObject *args) {
 	}
 	/* Update fishery and save results in python data types. */
 	results = UpdateFishery(fishery, (*(fishery->settings)), n);
-	results_py = Py_BuildValue("[iiidddii]", results.fish_n, results.yield, results.vegetation_n, 
-		results.fish_n_std_dev, results.yield_std_dev, results.vegetation_n_std_dev, results.steps, results.debug_stuff);
+	results_py = Py_BuildValue("[iiidddii]", 
+		results.fish_n, results.yield, results.vegetation_n, 
+		results.fish_n_std_dev, results.yield_std_dev, results.vegetation_n_std_dev, 
+		results.steps, results.debug_stuff);
 	if (!results_py)
 		return NULL;
 	
@@ -320,10 +340,14 @@ PyObject *MPyDestroyFishery(PyObject *self, PyObject *args) {
 
 static PyMethodDef fishery_methods[] = {
 	{ "MPyCreateFishery", (PyCFunction) MPyCreateFishery, METH_VARARGS, NULL },
-	{ "MPyGetFisheryVegetation", (PyCFunction)MPyGetFisheryVegetation, METH_VARARGS, NULL },
-	{ "MPyUpdateFishery", (PyCFunction) MPyUpdateFishery, METH_VARARGS, NULL },
-	{ "MPyGetFisherySettingOrder", (PyCFunction)MPyGetFisherySettingOrder, METH_NOARGS, NULL },
-	{ "MPyGetFisheryFishPopulation", (PyCFunction)MPyGetFisheryFishPopulation, METH_VARARGS, NULL },
+	{ "MPyGetFisheryVegetation", (PyCFunction)MPyGetFisheryVegetation, 
+	METH_VARARGS, NULL },
+	{ "MPyUpdateFishery", (PyCFunction) MPyUpdateFishery, 
+	METH_VARARGS, NULL },
+	{ "MPyGetFisherySettingOrder", (PyCFunction)MPyGetFisherySettingOrder, 
+	METH_NOARGS, NULL },
+	{ "MPyGetFisheryFishPopulation", (PyCFunction)MPyGetFisheryFishPopulation, 
+	METH_VARARGS, NULL },
 	{ "MPyDestroyFishery", (PyCFunction)MPyDestroyFishery, METH_VARARGS, NULL },
 	{ NULL, NULL, 0, NULL }
 };
