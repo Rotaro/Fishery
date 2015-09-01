@@ -150,6 +150,39 @@ int ValidateSettings(Fishery_Settings settings, int output_print) {
 
 	return settings_valid;
 }
+/*  Function PrintSettings()
+Prints settings, used for debugging.
+
+settings	 - Settings to be printed.
+*/
+void PrintSettings(Fishery_Settings settings) {
+	int i;
+	printf("%s: %d\n", "size_x", settings.size_x);
+	printf("%s: %d\n", "size_y", settings.size_y);
+	printf("%s: %d\n", "initial_vegetation_size", settings.initial_vegetation_size);
+	printf("%s: %d\n", "vegetation_level_max", settings.vegetation_level_max);
+	printf("%s: %d\n", "vegetation_level_spread_at", settings.vegetation_level_spread_at);
+	printf("%s: %d\n", "vegetation_level_growth_req", settings.vegetation_level_growth_req);
+	printf("%s: [", "vegetation_consumption");
+	for (i = 0; i < settings.vegetation_level_max + 1; i++) {
+		printf("%d ", settings.vegetation_consumption[i]);
+	}
+	printf("]\n");
+	printf("%s: %d\n", "soil_energy_increase_turn", settings.soil_energy_increase_turn);
+	printf("%s: %d\n", "soil_energy_max", settings.soil_energy_max);
+	printf("%s: %d\n", "initial_fish_size", settings.initial_fish_size);
+	printf("%s: %d\n", "fish_growth_req", settings.fish_growth_req);
+	printf("%s: %d\n", "fish_level_max", settings.fish_level_max);
+	printf("%s: %d\n", "fish_moves_turn", settings.fish_moves_turn);
+	printf("%s: [", "fish_consumption");
+	for (i = 0; i < settings.fish_level_max + 1; i++) {
+		printf("%d ", settings.fish_consumption[i]);
+	}
+	printf("]\n");
+	printf("%s: %d\n", "random_fishes_interval", settings.random_fishes_interval);
+	printf("%s: %d\n", "split_fishes_at_max", settings.split_fishes_at_max);
+	printf("%s: %f\n", "fishing_chance", settings.fishing_chance);
+}
 /* Function CreateSettings()
 	Creates Settings structure which is used in functions which manipulate the 
 	fishery. See documentation elsewhere for the settings parameters.

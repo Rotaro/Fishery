@@ -29,6 +29,7 @@ typedef struct tile
 	int soil_energy;
 	Fish_Pool *local_fish;
 } Tile;
+
 typedef struct fishery_settings
 {
 	int size_x;
