@@ -12,7 +12,7 @@ the corresponding ID.
 
 /*
 The simulation(s) are stored, with a unique ID, in a global variable to 
-prevent constant transfer of simulation data between python and c extension. 
+avoid constant transfer of simulation data between python and c extension. 
 */
 
 LList_Node *fishery_llist;
@@ -34,7 +34,7 @@ static PyObject *MPyCreateFishery(PyObject *self, PyObject *args) {
 	Fishery_Settings *settings;
 	Fishery *fishery;
 
-	/* Check provided dictionary is a dictionary and contains all settings.
+	/* Check provided parameter is a dictionary and contains all settings.
 	Errors are raised as TypeError and KeyError exceptions. */
 	if (!PyArg_ParseTuple(args, "O!", &PyDict_Type, &dict))
 		return NULL;
@@ -96,7 +96,7 @@ static PyObject *MPyCreateFishery(PyObject *self, PyObject *args) {
 	fishery = CreateFishery(*settings);
 	fishery->fishery_id = fishery_id_n;
 	fishery->settings = settings;
-	
+		
 	/* Store simulation in the linked list of simulations. */
 	if (fishery_llist == NULL)
 		fishery_llist = LListCreate();
@@ -250,8 +250,15 @@ PyObject *MPyGetFisheryFishPopulation(PyObject *self, PyObject *args) {
 }
 /* Function MPyUpdateFishery()
 
-Progresses the fishery simulation n steps, returning the total 
-results of the steps, including fish present and fishing yield.
+Progresses the fishery simulation n steps. The result of the n steps are returned
+as a python list containing the following values:
+
+number of fish encountered, fishing yield, vegetation level encountered,
+std dev of fish encountered, std dev of fishing yield, std dev of vegetation level encountered,
+steps progressed, debugging variable, fishing chance of simulation
+
+The last three are elements are included simply to make debugging easier. To be removed
+later on.
 
 *args - Two Python integers, first the simulation ID and 
 		second the amount of steps to progress the simulation.
@@ -288,10 +295,10 @@ PyObject *MPyUpdateFishery(PyObject *self, PyObject *args) {
 	}
 	/* Update fishery and save results in python data types. */
 	results = UpdateFishery(fishery, (*(fishery->settings)), n);
-	results_py = Py_BuildValue("[iiidddii]", 
+	results_py = Py_BuildValue("[iiidddiid]", 
 		results.fish_n, results.yield, results.vegetation_n, 
 		results.fish_n_std_dev, results.yield_std_dev, results.vegetation_n_std_dev, 
-		results.steps, results.debug_stuff);
+		results.steps, results.debug_stuff, fishery->settings->fishing_chance);
 	if (!results_py)
 		return NULL;
 	

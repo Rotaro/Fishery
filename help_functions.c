@@ -1,13 +1,15 @@
 /* help_functions.c
-
-Contains various help functions needed in the implementation of the fishery simulation.
-
+*
+* Contains various help functions needed in the implementation of the fishery simulation.
+*
 */
 
 #include "help_functions.h"
 #include <stdio.h>
 #include <stdlib.h>
-
+/* Function LListCreate().
+* Creates empty linked list. Returns pointer to first node.
+*/
 LList_Node *LListCreate(void) {
 	LList_Node *root;
 
@@ -20,6 +22,12 @@ LList_Node *LListCreate(void) {
 	root->node_value = NULL;
 	return root;
 }
+/* Function LListIsEmpty()
+* Checks if linked list is empty, e.g. the first node is empty
+* and does not link to another node. Returns 1 if empty, 0 otherwise.
+*
+* root		  - Start of linked list.
+*/
 int LListIsEmpty(LList_Node *root) {
 	if (root->next == NULL && root->node_value == NULL)
 	{
@@ -31,10 +39,10 @@ int LListIsEmpty(LList_Node *root) {
 	}
 }
 /* Function LListAdd().
-Adds node pointing to provided value. 
-
-*root		 - Start of linked list.
-*node_value  - Pointer to element to be stored in list. 
+* Adds node pointing to provided value. 
+*
+* root		  - Start of linked list.
+* node_value  - Pointer to element to be stored in list. 
 */
 LList_Node *LListAdd(
 	LList_Node *root, void *node_value) {
@@ -56,16 +64,16 @@ LList_Node *LListAdd(
 	return next;
 }
 /* Function LListPop().
-Removes first node containing node_value encountered in list. Node values are compared 
-using CompareValues. If node_value is NULL, the last element of the list is removed. Returns 
-a pointer to the value of the removed node, or NULL if no matching node is found. 
-
-*root				- Start of linked list.
-*node_value			- Value of node to be removed from list.
-CompareValue		- Function which compares node values. Returns 1 if a match, 0
-					  otherwise.
-
-found_node_value	- Return value. Pointer to value of removed node.
+* Removes first node containing node_value encountered in list. Node values are compared 
+* using CompareValues. If node_value is NULL, the last element of the list is removed. Returns 
+* a pointer to the value of the removed node, or NULL if no matching node is found. 
+*
+* root				- Start of linked list.
+* node_value			- Value of node to be removed from list.
+* CompareValue		- Function which compares node values. Returns 1 if a match, 0
+*					  otherwise.
+* 
+* found_node_value	- Return value. Pointer to value of removed node.
 */
 void *LListPop(
 	LList_Node *root, const void *node_value, int (*CompareValues)(const void *value1, const void *value2)) {
@@ -129,14 +137,12 @@ void *LListPop(
 		free(root);
 		return found_node_value;
 	}
-
-
 }
 /* Function LListDestroy()
-Destroys and frees memory of a linked list.
-
-root	  - Pointer to start of linked list.
-FreeValue - Function which frees the memory pointed to by a node.
+* Destroys and frees memory of a linked list.
+* 
+* root	  - Pointer to start of linked list.
+* FreeValue - Function which frees the memory pointed to by a node.
 */
 void LListDestroy(LList_Node *root, void (*FreeValue)(void *node_value)) {
 	LList_Node *next;
@@ -164,20 +170,20 @@ void FreeInt(void *value) {
 	free(value);
 }
 /* Function GetNewCoords().
-Generates new, random coordinates for fish pool. New coordinates
-are checked to be not out of bounds and to not contain any fish pools.
-Coordinates are prioritized according to vegetation level.
-Returns -1 if no coordinates can be generated.
-
-cur_coords	- Current coordinates of fish pool in one dimension.
-radius		- Largest allowed distance from current coordinates to
-new coordinates.
-size_x		- Width of vegetation layer in fishery simulation.
-size_y		- Height of vegetation layer in fishery simulation.
-fishery		- Pointer to initialized fishery simulation.
-
-new_coords  - Return value. New coordinates in one dimension.
-Returns -1 if no possible coordinates are available.
+* Generates new, random coordinates for fish pool. New coordinates
+* are checked to be not out of bounds and to not contain any fish pools.
+* Coordinates are prioritized according to vegetation level.
+* Returns -1 if no coordinates can be generated.
+* 
+* cur_coords	- Current coordinates of fish pool in one dimension.
+* radius		- Largest allowed distance from current coordinates to
+*				  new coordinates.
+* size_x		- Width of vegetation layer in fishery simulation.
+* size_y		- Height of vegetation layer in fishery simulation.
+* fishery		- Pointer to initialized fishery simulation.
+* 
+* new_coords  - Return value. New coordinates in one dimension.
+* Returns -1 if no possible coordinates are available.
 */
 int GetNewCoords(
 	int cur_coords, int radius, int size_x, int size_y, Fishery *fishery) {
@@ -234,6 +240,9 @@ int GetNewCoords(
 	free(poss_veg_coords);
 	return new_pos;
 }
+/* Function ComparePointers()
+* Simple function to compare two pointers, to be replaced by macro?
+*/
 int ComparePointers(const void *ptr1, const void *ptr2) {
 	if (ptr1 == ptr2)
 		return 1;
