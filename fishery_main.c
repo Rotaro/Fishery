@@ -1,4 +1,4 @@
-// main.c : Various tests to check program.
+// main.c : Various ad-hoc tests to check program.
 //
 
 #include <stdio.h>
@@ -65,7 +65,7 @@ int main(void)
 
 		settings = CreateSettings(10, 10,
 			80, 5, 3, 3, 10, 3, vegetation_requirements,
-			10, 5, 3, 6, fish_requirements, 2, 1, 0.2);
+			10, 5, 1, 6, fish_requirements, 50, 1, 0.1);
 		printf("Settings validated and created!\n");
 		printf("---------------------\n");
 		fishery = CreateFishery(settings);
@@ -114,10 +114,10 @@ int main(void)
 			}
 			printf("-----------\n");
 			scanf("%d", &tt);
+			fishery = CreateFishery(settings);
 			for (i = 0; i < 100; i++) {
-				fishery = CreateFishery(settings);
 				results = UpdateFishery(fishery, settings, tt);
-				printf("%d, %d, %d\n", results.fish_n, results.yield, results.debug_stuff);
+				printf("[%d, %d, %d],\n", results.fish_n, results.yield, results.debug_stuff);
 			}
 			printf("Yield was: %f (%f)\n", (double) results.yield / tt, results.yield_std_dev);
 			printf("Fish pop was: %f (%f)\n", (double)results.fish_n / tt, results.fish_n_std_dev);
