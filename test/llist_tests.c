@@ -67,7 +67,7 @@ void TestLListAdd(void) {
 }
 void TestLListPop(void) {
 	LList_Node *root, *tmp_ptr;
-	int *node_value1, *node_value2, ptr1, i;
+	int *node_value1, *node_value2, *ptr1, i;
 	
 	node_value1 = malloc(sizeof(int));
 	node_value2 = malloc(sizeof(int));

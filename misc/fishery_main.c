@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <math.h>
+#include <time.h>
 #include "fishery_data_types.h"
 #include "fishery_functions.h"
 #include "fishery_tests.h"

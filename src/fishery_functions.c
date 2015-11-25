@@ -470,7 +470,7 @@ void UpdateFisheryVegetation(
  */
 void UpdateFisheryFishPopulation(
 	Fishery *fishery, Fishery_Settings settings) {
-	LList_Node *fish_node, *for_deletion = NULL, *tmp_fish_node;
+	LList_Node *fish_node, *for_deletion = NULL;
 	Fish_Pool *fish, *new_fish, *first_added = NULL;
 	int fish_pos, avail_moves, appetite, consumed, new_pos, i, pos_avail_n, *pos_avail;
 	double random_fishes_counter = settings.random_fishes_interval / 100.0;
@@ -623,17 +623,18 @@ Frees memory used by fishery simulation.
 fishery     - Initialized or progressed fishery.
 settings    - Settings for fishery.
 */
-void DestroyFishery(Fishery *fishery) {
-	LListDestroy(fishery->fish_list, free);
-	free(fishery->vegetation_layer);
-	if (fishery->settings != NULL) {
-		if (fishery->settings->vegetation_consumption != NULL)
-			free(fishery->settings->vegetation_consumption);
-		if (fishery->settings->fish_consumption != NULL)
-			free(fishery->settings->fish_consumption);
-		free(fishery->settings);
+void DestroyFishery(void *fishery) {
+	Fishery *fishery_ptr = (Fishery *) fishery;
+	LListDestroy(fishery_ptr->fish_list, free);
+	free(fishery_ptr->vegetation_layer);
+	if (fishery_ptr->settings != NULL) {
+		if (fishery_ptr->settings->vegetation_consumption != NULL)
+			free(fishery_ptr->settings->vegetation_consumption);
+		if (fishery_ptr->settings->fish_consumption != NULL)
+			free(fishery_ptr->settings->fish_consumption);
+		free(fishery_ptr->settings);
 	}
-	free(fishery);
+	free(fishery_ptr);
 }
 /* Function FishingEvent().
  *

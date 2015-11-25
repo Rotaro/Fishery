@@ -30,7 +30,7 @@ Fishery_Results UpdateFishery(Fishery *fishery, Fishery_Settings settings, int n
 void UpdateFisheryVegetation(Fishery *fishery, Fishery_Settings settings);
 void UpdateFisheryFishPopulation(Fishery *fishery, Fishery_Settings settings);
 int FishingEvent(Fishery *fishery, Fishery_Settings settings);
-void DestroyFishery(Fishery *fishery);
+void DestroyFishery(void *fishery);
 Fishery *GetFishery(Fishery *fishery, Fishery_Settings settings); /* Hmmmm */
 void PrintSettings(Fishery_Settings settings);
 
