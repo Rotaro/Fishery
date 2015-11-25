@@ -18,8 +18,8 @@ avoid constant transfer of simulation data between python and c extension.
 LList_Node *fishery_llist;
 int fishery_id_n = 0;
 
-extern char *setting_order[];
-extern int settings_size;
+extern char *SETTING_ORDER[];
+extern int SETTINGS_SIZE;
 
 /* Function MPyCreateFishery
 
@@ -38,9 +38,9 @@ static PyObject *MPyCreateFishery(PyObject *self, PyObject *args) {
 	Errors are raised as TypeError and KeyError exceptions. */
 	if (!PyArg_ParseTuple(args, "O!", &PyDict_Type, &dict))
 		return NULL;
-	for (i = 0; i < settings_size; i++) {
-		if (PyDict_Contains(dict, PyUnicode_FromString(setting_order[i])) != 1) {
-			PyErr_Format(PyExc_KeyError, setting_order[i]);
+	for (i = 0; i < SETTINGS_SIZE; i++) {
+		if (PyDict_Contains(dict, PyUnicode_FromString(SETTING_ORDER[i])) != 1) {
+			PyErr_Format(PyExc_KeyError, SETTING_ORDER[i]);
 			return NULL;
 		}
 	}
@@ -115,11 +115,11 @@ PyObject *MPyGetFisherySettingOrder(PyObject *self) {
 
 	srand((unsigned int)time(NULL));
 	
-	py_setting_order = PyList_New(settings_size);
+	py_setting_order = PyList_New(SETTINGS_SIZE);
 	if (!py_setting_order) /* PyList_New sets exception. */
 		return NULL;
-	for (i = 0; i < settings_size; i++) {
-		item = Py_BuildValue("s", setting_order[i]);
+	for (i = 0; i < SETTINGS_SIZE; i++) {
+		item = Py_BuildValue("s", SETTING_ORDER[i]);
 		if (PyList_SetItem(py_setting_order, i, item) == -1) {
 			/* Steals reference, no need to worry about item. */
 			Py_DECREF(py_setting_order);

@@ -54,7 +54,7 @@ int main(void)
 		printf("-----------\n");
 		GetNewCoords(12, 1, settings.size_x, settings.size_y, fishery);
 		for (i = 0; i < 1000000; i++) {
-			j = (int)(((double)rand()) / (RAND_MAX+1)*(10));
+			j = (int)(((double)rand()) / (RAND_MAX+1L)*(10));
 			if (j == 10)
 				k++;
 		}

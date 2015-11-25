@@ -228,11 +228,11 @@ int GetNewCoords(
 	}
 	/* Choose random coordinates if possible.*/
 	if (valid_veg_coords) {
-		rand_number = (int)(rand() / (double)(RAND_MAX + 1) * valid_veg_coords);
+		rand_number = (int)(rand() / (double)(RAND_MAX + 1L) * valid_veg_coords);
 		new_pos = poss_veg_coords[rand_number];
 	}
 	if (valid_coords > 0) {
-		rand_number = (int)(rand() / (double) (RAND_MAX + 1) * valid_coords);
+		rand_number = (int)(rand() / (double) (RAND_MAX + 1L) * valid_coords);
 		new_pos = poss_coords[rand_number];
 	}
 

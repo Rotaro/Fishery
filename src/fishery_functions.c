@@ -12,16 +12,16 @@
 #include <assert.h>
 #include <math.h>
 
-/* setting_order, settings_size and list_indexes_sizes are used to parse 
+/* SETTING_ORDER, SETTINGS_SIZE and LIST_INDEXES_SIZES are used to parse 
  * settings in the python module. */
-const char *setting_order[] = { "size_x", "size_y",
+const char *SETTING_ORDER[] = { "size_x", "size_y",
 "initial_vegetation_size", "vegetation_level_max", "vegetation_level_spread_at",
 "vegetation_level_growth_req", "soil_energy_max", "soil_energy_increase_turn",
 "vegetation_consumption", 
 "initial_fish_size", "fish_level_max", "fish_growth_req", "fish_moves_turn",
 "fish_consumption", "random_fishes_interval", "split_fishes_at_max", "fishing_chance"};
-const int settings_size = 17;
-const int list_indexes_sizes[] =  {8, 3, 13, 10};
+const int SETTINGS_SIZE = 17;
+const int LIST_INDEXES_SIZES[] =  {8, 3, 13, 10};
 
 /* Function CheckFishMemory()
  * Temporary function used to check no mistakes are made when fish pools are moved
@@ -285,7 +285,7 @@ Fishery *CreateFishery(
 		pos_avail[i] = i;
 	}
 	for (i = 0; i < settings.initial_vegetation_size; i++) {
-		pos = (int) ((double) rand() / (RAND_MAX + 1)*(settings.size_x*settings.size_y-1-i));
+		pos = (int)((double)rand() / (RAND_MAX + 1L)*(settings.size_x*settings.size_y - 1 - i));
 		fishery->vegetation_layer[pos_avail[pos]].vegetation_level = 1;
 		pos_avail[pos] = pos_avail[settings.size_x*settings.size_y - 1 - i];
 	}
@@ -298,7 +298,7 @@ Fishery *CreateFishery(
 		pos_avail[i] = i;
 	}
 	for (i = 0; i < settings.initial_fish_size; i++) {
-		pos = (int)(rand() / (double) (RAND_MAX + 1)*(settings.size_x*settings.size_y - 1 - i));
+		pos = (int)(rand() / (double) (RAND_MAX + 1L)*(settings.size_x*settings.size_y - 1 - i));
 		fish = malloc(sizeof(Fish_Pool));
 		fish->food_level = 0;
 		fish->pop_level = 1;
@@ -587,7 +587,7 @@ void UpdateFisheryFishPopulation(
 		}
 	}
 	if (settings.random_fishes_interval) {
-		if (random_fishes_counter >= rand() / ((double) RAND_MAX + 1)) {
+		if (random_fishes_counter >= rand() / ((double) RAND_MAX + 1L)) {
 			/* Spawn fish randomly. Start by finding 
 			   available positions for fishes. */
 			pos_avail = malloc(sizeof(int)*settings.size_x*settings.size_y);
@@ -598,7 +598,7 @@ void UpdateFisheryFishPopulation(
 			}
 			if (pos_avail_n > 0) {
 				/* If there's room for a new fish. */
-				new_pos = (int)(rand() / (double)(RAND_MAX + 1)*(pos_avail_n - 1));
+				new_pos = (int)(rand() / (double)(RAND_MAX + 1L)*(pos_avail_n - 1));
 				new_pos = pos_avail[new_pos];
 				new_fish = malloc(sizeof(Fish_Pool));
 				new_fish->food_level = 0;
@@ -657,7 +657,7 @@ int FishingEvent(
 	fish_node = fishery->fish_list;
 	while (fish_node != NULL && fish_node->node_value != NULL) {
 		fish = fish_node->node_value;
-		if (rand() / (double)(RAND_MAX + 1) <= settings.fishing_chance) {
+		if (rand() / (double)(RAND_MAX + 1L) <= settings.fishing_chance) {
 			/*  yield = (int) round(rand() / (double)(RAND_MAX + 1) * (fish->pop_level/2+1));
 			yield = (int) ceil(fish->pop_level*settings.fishing_chance); */
 			/* yield = fish->pop_level; */
