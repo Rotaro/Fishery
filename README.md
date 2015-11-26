@@ -16,11 +16,13 @@ the simulation can be altered, including fish and vegetation growth rate, fishin
 details, see the documentation in the doc directory.
 
 ##Python version
-The simulation is written with C, but has been extended to work as a Python module. For this end, included are:
+The simulation is written in C, but has been extended to work as a _Python3_ module. For this end, included are:
 
 - fishery_py_module.c
   - c-code for functions which are callable from Python
 - setup.py
-  - Configuration for compilation with distutils. Has only been tested with Microsoft Visual C/C++ compiler 2013.
+  - Configuration for compilation with distutils. Has been tested with Microsoft Visual C/C++ compiler 2012 and gcc 4.8.4 (Ubuntu 14.04).
+  
+Alternatively install with pip: pip install git+https://github.com/Rotaro/Fishery.
 
 For more information see the documentation in the doc directory.
