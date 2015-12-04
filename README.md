@@ -19,9 +19,9 @@ details, see the documentation in the doc directory.
 The simulation is written in C, but has been extended to work as a _Python3_ module. For this end, included are:
 
 - fishery_py_module.c
-  - c-code for functions which are callable from Python
+  - Functions which are callable from Python.
 - setup.py
-  - Configuration for compilation with distutils. Has been tested with Microsoft Visual C/C++ compiler 2012 and gcc 4.8.4 (Ubuntu 14.04).
+  - Configuration for compilation with distutils. Has been tested with Microsoft Visual C/C++ 2012 compiler and gcc 4.8.4 (Ubuntu 14.04).
   
 Alternatively install with pip: pip install git+https://github.com/Rotaro/Fishery.
 
