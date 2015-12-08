@@ -285,7 +285,8 @@ Fishery *CreateFishery(
 		pos_avail[i] = i;
 	}
 	for (i = 0; i < settings.initial_vegetation_size; i++) {
-		pos = (int)((double)rand() / (RAND_MAX + 1L)*(settings.size_x*settings.size_y - 1 - i));
+		// pos = (int)((double)rand() / (RAND_MAX + 1L)*(settings.size_x*settings.size_y - 1 - i));
+		pos = GENERATERANDINT(0, settings.size_x*settings.size_y - 1 - i);
 		fishery->vegetation_layer[pos_avail[pos]].vegetation_level = 1;
 		pos_avail[pos] = pos_avail[settings.size_x*settings.size_y - 1 - i];
 	}
@@ -298,7 +299,8 @@ Fishery *CreateFishery(
 		pos_avail[i] = i;
 	}
 	for (i = 0; i < settings.initial_fish_size; i++) {
-		pos = (int)(rand() / (double) (RAND_MAX + 1L)*(settings.size_x*settings.size_y - 1 - i));
+		// pos = (int)(rand() / (double)(RAND_MAX + 1L)*(settings.size_x*settings.size_y - 1 - i));
+		pos = GENERATERANDINT(0, settings.size_x*settings.size_y - 1 - i);
 		fish = malloc(sizeof(Fish_Pool));
 		fish->food_level = 0;
 		fish->pop_level = 1;
@@ -598,7 +600,8 @@ void UpdateFisheryFishPopulation(
 			}
 			if (pos_avail_n > 0) {
 				/* If there's room for a new fish. */
-				new_pos = (int)(rand() / (double)(RAND_MAX + 1L)*(pos_avail_n - 1));
+				//new_pos = (int)(rand() / (double)(RAND_MAX + 1L)*(pos_avail_n - 1));
+				new_pos = GENERATERANDINT(0, pos_avail_n - 1);
 				new_pos = pos_avail[new_pos];
 				new_fish = malloc(sizeof(Fish_Pool));
 				new_fish->food_level = 0;

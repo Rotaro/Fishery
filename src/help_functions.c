@@ -7,6 +7,8 @@
 #include "help_functions.h"
 #include <stdio.h>
 #include <stdlib.h>
+
+
 /* Function LListCreate().
 * Creates empty linked list. Returns pointer to first node.
 */
@@ -228,11 +230,13 @@ int GetNewCoords(
 	}
 	/* Choose random coordinates if possible.*/
 	if (valid_veg_coords) {
-		rand_number = (int)(rand() / (double)(RAND_MAX + 1L) * valid_veg_coords);
+		// rand_number = (int)(rand() / (double)(RAND_MAX + 1L) * valid_veg_coords);
+		rand_number = GENERATERANDINT(0, valid_veg_coords - 1);
 		new_pos = poss_veg_coords[rand_number];
 	}
-	if (valid_coords > 0) {
-		rand_number = (int)(rand() / (double) (RAND_MAX + 1L) * valid_coords);
+	else if (valid_coords > 0) {
+		// rand_number = (int)(rand() / (double) (RAND_MAX + 1L) * valid_coords);
+		rand_number = GENERATERANDINT(0, valid_coords - 1);
 		new_pos = poss_coords[rand_number];
 	}
 
