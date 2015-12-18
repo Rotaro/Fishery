@@ -23,6 +23,6 @@ The simulation is written in C, but has been extended to work as a _Python3_ mod
 - setup.py
   - Configuration for compilation with distutils. Has been tested with Microsoft Visual C/C++ 2012 compiler and gcc 4.8.4 (Ubuntu 14.04).
   
-Alternatively install with pip: pip install git+https://github.com/Rotaro/Fishery.
+Installation with pip is simple: pip install git+https://github.com/Rotaro/Fishery.
 
 For more information see the documentation in the doc directory.
