@@ -26,6 +26,7 @@ int TestFisheryAll() {
 	printf("-----------\n");
 	TestFisherySettings();
 	TestInitialFishery();
+	TestAddSettings();
 	TestGetNewCoords();
 	printf("-----------\n");
 	printf("All tests passed.\n");
@@ -47,19 +48,14 @@ int TestFisherySettings() {
 	settings.vegetation_consumption = consumption;
 	settings.soil_energy_increase_turn = 3;
 	settings.soil_energy_max = 10;
-
 	settings.initial_fish_size = 10;
 	settings.fish_growth_req = 2;
 	settings.fish_level_max = 5;
 	settings.fish_moves_turn = 3;
 	settings.fish_consumption = fish_consumption;
-
-
 	settings.split_fishes_at_max = 1;
 	settings.random_fishes_interval = 10;
-
-	settings.fishing_chance = 0.1;
-
+	settings.fishing_chance = 10;
 
 	printf("Testing ValidateSettings()!\n");
 	assert(ValidateSettings(settings, 0));
@@ -111,7 +107,69 @@ int TestFisherySettings() {
 	printf("Test passed.\n");
 	return 1;
 }
+int TestAddSettings(void) {
+	Fishery_Settings settings;
+	int i, test_val;
+	int consumption[] = { 0, 1, 1, 2, 2, 3 };
+	int fish_consumption[] = { 0, 1, 2, 3, 4, 5 };
 
+	printf("Testing AddSetting()!\n");
+	/* Test settings are properly added. */
+	test_val = 10;
+	assert(AddSetting(&settings, "size_x", &test_val) == 1);
+	assert(settings.size_x == test_val);
+	test_val = 10;
+	assert(AddSetting(&settings, "size_y", &test_val) == 1);
+	assert(settings.size_y == test_val);
+	test_val = 80;
+	assert(AddSetting(&settings, "initial_vegetation_size", &test_val) == 1);
+	assert(settings.initial_vegetation_size == test_val);
+	test_val = 5;
+	assert(AddSetting(&settings, "vegetation_level_max", &test_val) == 1);
+	assert(settings.vegetation_level_max == test_val);
+	test_val = 3;
+	assert(AddSetting(&settings, "vegetation_level_spread_at", &test_val) == 1);
+	assert(settings.vegetation_level_spread_at == test_val);
+	test_val = 2;
+	assert(AddSetting(&settings, "vegetation_level_growth_req", &test_val) == 1);
+	assert(settings.vegetation_level_growth_req == test_val);
+	test_val = 10;
+	assert(AddSetting(&settings, "soil_energy_max", &test_val) == 1);
+	assert(settings.soil_energy_max == test_val);
+	test_val = 3;
+	assert(AddSetting(&settings, "soil_energy_increase_turn", &test_val) == 1);
+	assert(settings.soil_energy_increase_turn == test_val);
+	assert(AddSetting(&settings, "vegetation_consumption", consumption) == 1);
+	for (i = 0; i < 6; i++)
+		assert(settings.vegetation_consumption[i] == consumption[i]);
+	test_val = 10;
+	assert(AddSetting(&settings, "initial_fish_size", &test_val) == 1);
+	assert(settings.initial_fish_size == test_val);
+	test_val = 5;
+	assert(AddSetting(&settings, "fish_level_max", &test_val) == 1);
+	assert(settings.fish_level_max == test_val);
+	test_val = 1;
+	assert(AddSetting(&settings, "fish_growth_req", &test_val) == 1);
+	assert(settings.fish_growth_req == test_val);
+	test_val = 3;
+	assert(AddSetting(&settings, "fish_moves_turn", &test_val) == 1);
+	assert(settings.fish_moves_turn == test_val);
+	assert(AddSetting(&settings, "fish_consumption", fish_consumption) == 1);
+	for (i = 0; i < 6; i++)
+		assert(settings.fish_consumption[i] == fish_consumption[i]);
+	test_val = 3;
+	assert(AddSetting(&settings, "random_fishes_interval", &test_val) == 1);
+	assert(settings.random_fishes_interval == test_val);
+	test_val = 3;
+	assert(AddSetting(&settings, "split_fishes_at_max", &test_val) == 1);
+	assert(settings.split_fishes_at_max == test_val);
+	test_val = 30;
+	assert(AddSetting(&settings, "fishing_chance", &test_val) == 1);
+	assert(settings.fishing_chance == test_val);
+
+	printf("Test passed.\n");
+	return 1;
+}
 int TestInitialFishery(void) {
 	Fishery_Settings settings;
 	Fishery *fishery;
@@ -142,7 +200,7 @@ int TestInitialFishery(void) {
 	settings.split_fishes_at_max = 1;
 	settings.random_fishes_interval = 10;
 
-	settings.fishing_chance = 0.1;
+	settings.fishing_chance = 10;
 	
 
 	printf("Testing CreateFishery()!\n");
@@ -179,7 +237,6 @@ int TestGetNewCoords(void) {
 	Fishery_Settings settings;
 	Fishery *fishery;
 	Fish_Pool fish1, fish2, fish3, fish4, fish5, fish6, fish7, fish8, fish9;
-	int fishes_found_in_vege = 0, fishes_found_in_list = 0, vegetation_found = 0;
 	int consumption[] = { 0, 1, 1, 2, 2, 3 };
 	int fish_consumption[] = { 0, 1, 2, 3, 4, 5};
 
@@ -203,7 +260,7 @@ int TestGetNewCoords(void) {
 	settings.split_fishes_at_max = 1;
 	settings.random_fishes_interval = 10;
 
-	settings.fishing_chance = 0.1;
+	settings.fishing_chance = 10;
 
 	printf("Testing GetNewCoords()!\n");
 	fishery = CreateFishery(settings);

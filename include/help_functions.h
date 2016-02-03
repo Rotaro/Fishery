@@ -1,8 +1,10 @@
-/* help_functions.h
-
-Contains various help functions needed in the implementation of the fishery simulation.
-
-*/
+/*****************************************************************************
+* Filename: help_functions.h												 *
+*																			 *
+* Contains various help functions needed in the implementation of the		 *
+* fishery simulation.														 *
+*																			 *
+******************************************************************************/
 
 #ifndef HELP_FUNCTIONS_H_
 #define HELP_FUNCTIONS_H
@@ -22,7 +24,6 @@ void LListDestroy(LList_Node *root, void (*FreeValue)(void *node_value));
 
 /* Helper functions for using ints in linked list structures. */
 int CompareInts(const void *int1, const void *int2);
-void FreeInt(void *value);
 
 /* Other help functions.*/
 int GetNewCoords(int cur_pos, int radius, int size_x, int size_y, Fishery *fishery);

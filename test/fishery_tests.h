@@ -11,11 +11,13 @@ Contains functions for testing different properties of the fishery simulation.
 #include <stdlib.h>
 #include "fishery_data_types.h"
 #include "fishery_functions.h"
+#include "fishery_settings.h"
 #include "help_functions.h"
 #include "llist_tests.h"
 
 int TestFisheryAll(void);
 int TestFisherySettings(void);
+int TestAddSettings(void);
 int TestInitialFishery(void);
 
 int TestGetNewCoords(void);
