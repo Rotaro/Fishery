@@ -1,35 +1,37 @@
-/*
-fishery_data_types.h
-
-Data structures and types used in the fishery simulation are defined here.
-*/
+/*****************************************************************************
+* Filename: fishery_data_types.h											 *
+*																			 *
+* Contains data structures/types used in the fishery simulation.			 *
+*																			 *
+******************************************************************************/
 
 #ifndef FISHERY_DATA_TYPES_H_
 #define FISHERY_DATA_TYPES_H_
 
 #include <stdlib.h>
 
-/* Basic linked list structure for any type of storage. */
+/* Linked list. */
 typedef struct llist_node
 {
 	struct llist_node *next;
 	void *node_value;
 } LList_Node;
+/* Stores fish pool information. */
 typedef struct fish_pool
 {
 	int pop_level;
 	int food_level;
-	int reprod_counter;
 	int pos_x;
 	int pos_y;
 } Fish_Pool;
+/* Stores vegetation tile information. */
 typedef struct tile
 {
 	int vegetation_level;
 	int soil_energy;
 	Fish_Pool *local_fish;
 } Tile;
-
+/* Stores fishery settings. */
 typedef struct fishery_settings
 {
 	int size_x;
@@ -52,16 +54,19 @@ typedef struct fishery_settings
 	int random_fishes_interval;
 	int split_fishes_at_max;
 
-	double fishing_chance;
+	int fishing_chance;
 
 } Fishery_Settings;
+/* Stores fishery simulation, including settings, vegetation layer 
+   and fish population. */
 typedef struct fishery
 {
 	Tile *vegetation_layer;
 	LList_Node *fish_list;
-	int fishery_id;
+	unsigned int fishery_id;
 	Fishery_Settings *settings;
 } Fishery;
+/* Stores fishery simulation results. */
 typedef struct fishery_results
 {
 	int yield;
