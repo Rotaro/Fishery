@@ -67,7 +67,7 @@ static PyObject *MPyCreateFishery(PyObject *self, PyObject *args) {
 			AddSetting(settings, MASTER_SETTING_LIST[i][0], &item);
 		}
 		else {
-			/* If setting is a Python list. */
+			/* If setting is a list. */
 			list_item = PyDict_GetItemString(dict, MASTER_SETTING_LIST[i][0]);
 			if (PyList_Check(list_item) == 0)
 				return PyErr_Format(PyExc_TypeError, "Not a list.");
@@ -160,21 +160,12 @@ PyObject *MPySetRNGSeed(PyObject *self, PyObject *args) {
 PyObject *MPyGetFisheryVegetation(PyObject *self, PyObject *args) {
 	PyObject *py_vegetation_list, *item;
 	Fishery *fishery=NULL;
-	LList_Node *node;
 	int i, fishery_id;
 	
 	/* Find fishery with provided ID. */
 	if (!PyArg_ParseTuple(args, "i", &fishery_id))
 		return NULL;
-	node = fishery_llist;
-	while (node != NULL && node->node_value != NULL) {
-		fishery = node->node_value;
-		if (fishery->fishery_id == fishery_id)
-			break;
-		else
-			fishery = NULL;
-		node = node->next;
-	}
+	fishery = LListSearch(fishery_llist, &fishery_id, CompareFisheries);
 	if (fishery == NULL) {
 		PyErr_Format(PyExc_KeyError, "Fishery with ID %d not found.\n", fishery_id);
 		return NULL;
@@ -214,19 +205,12 @@ PyObject *MPyGetFisheryFishPopulation(PyObject *self, PyObject *args) {
 	/* Find fishery with provided ID. */
 	if (!PyArg_ParseTuple(args, "i", &fishery_id))
 		return NULL;
-	node = fishery_llist;
-	while (node != NULL && node->node_value != NULL) {
-		fishery = node->node_value;
-		if (fishery->fishery_id == fishery_id)
-			break;
-		else
-			fishery = NULL;
-		node = node->next;
-	}
+	fishery = LListSearch(fishery_llist, &fishery_id, CompareFisheries);
 	if (fishery == NULL) {
 		PyErr_Format(PyExc_KeyError, "Fishery with ID %d not found.\n", fishery_id);
 		return NULL;
 	}
+
 	/* Find fish population size. */
 	node = fishery->fish_list;
 	while (node != NULL && node->node_value != NULL) {
@@ -293,7 +277,6 @@ PyObject *MPyGetFisheryFishPopulation(PyObject *self, PyObject *args) {
  * Returns:	Results of the simulation update as a Python list of numerics.
 */
 PyObject *MPyUpdateFishery(PyObject *self, PyObject *args) {
-	LList_Node *node;
 	int n, fishery_id;
 	Fishery_Results results;
 	Fishery *fishery;
@@ -309,15 +292,7 @@ PyObject *MPyUpdateFishery(PyObject *self, PyObject *args) {
 		return NULL;
 	}
 	/* Find correct fishery. */
-	node = fishery_llist;
-	while (node != NULL && node->node_value != NULL) {
-		fishery = node->node_value;
-		if (fishery->fishery_id == fishery_id)
-			break;
-		else
-			fishery = NULL;
-		node = node->next;
-	}
+	fishery = LListSearch(fishery_llist, &fishery_id, CompareFisheries);
 	if (fishery == NULL) {
 		PyErr_Format(PyExc_KeyError, "Fishery with ID %d not found.\n", fishery_id);
 		return NULL;
@@ -344,29 +319,20 @@ PyObject *MPyUpdateFishery(PyObject *self, PyObject *args) {
  *			1 if simulation(s) were successfully removed, 0 otherwise.
 */
 PyObject *MPyDestroyFishery(PyObject *self, PyObject *args) {
-	LList_Node *node;
-	int i = 0, fishery_id;
+	int fishery_id;
 	Fishery *fishery;
 
 	
 	if (!PyArg_ParseTuple(args, "i", &fishery_id))
 		return NULL;
-	
+
 	if (fishery_id == -1) {
 		/* Destroy all simulation(s). */
 		LListDestroy(fishery_llist, DestroyFishery);
 	}
 	else {
 		/* Find fishery with provided ID. */
-		node = fishery_llist;
-		while (node != NULL && node->node_value != NULL) {
-			fishery = node->node_value;
-			if (fishery->fishery_id == fishery_id)
-				break;
-			else
-				fishery = NULL;
-			node = node->next;
-		}
+		fishery = LListSearch(fishery_llist, &fishery_id, CompareFisheries);
 		if (fishery == NULL) {
 			PyErr_Format(PyExc_KeyError, "Fishery with ID %d not found.\n", fishery_id);
 			return NULL;
@@ -388,24 +354,16 @@ PyObject *MPyDestroyFishery(PyObject *self, PyObject *args) {
  *			simulation exists, 0 otherwise.
 */
 PyObject *MPyDoesFisheryExist(PyObject *self, PyObject *args) {
-	LList_Node *node;
-	int i = 0, fishery_id, success=0;
+	int fishery_id, success=0;
 	Fishery *fishery;
-
 
 	if (!PyArg_ParseTuple(args, "i", &fishery_id))
 		return NULL;
-
 	/* Find fishery with provided ID. */
-	node = fishery_llist;
-	while (node != NULL && node->node_value != NULL) {
-		fishery = node->node_value;
-		if (fishery->fishery_id == fishery_id) {
-			success = 1;
-			break;
-		}
-		node = node->next;
-	}
+	fishery = LListSearch(fishery_llist, &fishery_id, CompareFisheries);
+	if (fishery != NULL)
+		success = 1;
+	
 	return Py_BuildValue("i", success);
 }
 

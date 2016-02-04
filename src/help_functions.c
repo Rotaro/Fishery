@@ -46,10 +46,10 @@ int LListIsEmpty(LList_Node *root) {
 }
 /* Function: LListAdd
  * ------------------
- * Adds node to linked list pointing to provided value. 
+ * Adds node to linked list pointing to node_value. 
  *
  * root:		LList_Node pointer start of linked list.
- * node_value:	Pointer to element to be stored in list. 
+ * node_value:	Pointer to value to be stored in list. 
  *
  * Returns:		LList_Node pointer to new node in linked list. 
  */
@@ -74,82 +74,119 @@ LList_Node *LListAdd(
 }
 /* Function LListPop
  * -----------------
- * Removes first node containing node_value encountered in list. Node values
- * are compared using CompareValues. If node_value is NULL, the last element 
- * of the list is removed. Returns a pointer to the value of the removed node,
- * or NULL if no matching node is found. 
+ * Pops (i.e. removes from list and returns) node_value. 
+ * CompareValues is used to compare node values and node_value. 
+ * If node_value is NULL, the last node of the list is popped. 
+ * Returns a pointer to the value of the removed node, or NULL if 
+ * no matching node is found. 
  *
  * *root:			LList_Node pointer to start of linked list.
- * *node_value:		Pointer to value of node to be removed from list.
- * *CompareValue:	Pointer to function which compares node values. Returns 
- *                  1 if a match, 0 otherwise.
+ * *node_value:		Pointer to value to be removed from list.
+ * *CompareValues:	Pointer to function which compares values. Returns 
+ *                  1 if values are the same, 0 otherwise.
  * 
  * Returns:			Pointer to value of removed node, or NULL if
  *					value not found.
  */
 void *LListPop(
-	LList_Node *root, const void *node_value, int (*CompareValues)(const void *value1, const void *value2)) {
-	LList_Node *prev;
+	LList_Node *root, const void *node_value, 
+	int (*CompareValues)(const void *value1, const void *value2)) {
+	LList_Node *prev, *curr;
 	void *found_node_value;
+
 	prev = root;
-	/* Both root and prev pointers are actively used in traversing the list. */
-	if (LListIsEmpty(root))
+	curr = root;
+	if (LListIsEmpty(curr))
 		return NULL;
-	/* Pop last element. */
+
 	if (node_value == NULL) {
-		while (root->next != NULL) {
-			prev = root;
-			root = root->next;
+		/* Pop last node. */
+		while (curr->next != NULL) {
+			prev = curr;
+			curr = curr->next;
 		}
-		found_node_value = root->node_value;
-		root->node_value = NULL;
-		if (root == prev) { /* Only one element in list. */
+		found_node_value = curr->node_value;
+		curr->node_value = NULL;
+		if (curr == root) { 
+			/* Only one node in list. */
 			return found_node_value;
 		}
-		free(root);
+		free(curr);
 		prev->next = NULL;
 		return found_node_value;
 	}
-	/* Look for matching element. */
-	while (CompareValues(root->node_value, node_value) != 1) {
-		if (root->next == NULL) 
+	/* Look for node_value. */
+	while (CompareValues(curr->node_value, node_value) != 1) {
+		if (curr->next == NULL)
 			/* Value not found in list. */
 			return NULL;
-		prev = root;
-		root = root->next;
+		prev = curr;
+		curr = curr->next;
 	}
-	if (root->next != NULL) {
-		/* Value found in list and not last element. */
-		found_node_value = root->node_value;
-		root->node_value = NULL;
-		if (root == prev) { 
-			/* First element contains desired value,
-			set root to contain next element. */
-			prev = prev->next;
+	if (curr->next != NULL) {
+		/* Value found in list and not last node. */
+		found_node_value = curr->node_value;
+		curr->node_value = NULL;
+		if (curr == root) {
+			/* First node contains value,
+			set root to contain next node value. */
+			curr = root->next;
 			root->node_value = root->next->node_value;
-			root->next = root->next->next;	
-			free(prev);
+			root->next = root->next->next;
+			free(curr);
 			return found_node_value;
 		}
 		/* Remove node containing value. */
-		prev->next = root->next;
-		free(root);
+		prev->next = curr->next;
+		free(curr);
 		return found_node_value;
 	}
 	else {
-		/* Value found in last element of list.*/
-		found_node_value = root->node_value;
-		root->node_value = NULL;
-		if (root == prev) { 
-			/* Only one element in list. */
+		/* Value found in last node of list.*/
+		found_node_value = curr->node_value;
+		curr->node_value = NULL;
+		if (curr == prev) {
+			/* Only one node in list. */
 			return found_node_value;
 		}
 		/* Remove node containing value. */
 		prev->next = NULL;
-		free(root);
+		free(curr);
 		return found_node_value;
 	}
 }
+/* Function LListSearch
+ * --------------------
+ * Searches for node_value in linked list. Returns pointer to value
+ * of node.
+ *
+ * *root:			LList_Node pointer to start of linked list.
+ * *node_value:		Pointer to value to be removed from list.
+ * *CompareValues:	Pointer to function which compares values. Returns
+ *                  1 if values are the same, 0 otherwise.
+ *
+ * Returns:			Pointer to value of removed node, or NULL if
+ *					value not found.
+ */
+void *LListSearch(
+	LList_Node *root, const void *node_value,
+	int(*CompareValues)(const void *value1, const void *value2)) {
+	LList_Node *curr;
+
+	if (LListIsEmpty(root))
+		return NULL;
+
+	curr = root;
+	/* Look for node value. */
+	while (CompareValues(curr->node_value, node_value) != 1) {
+		if (curr->next == NULL)
+			/* Value not found. */
+			return NULL;
+		curr = curr->next;
+	}
+	return curr->node_value;
+}
+
 /* Function: LListDestroy
  * ----------------------
  * Destroys and frees memory of a linked list.
@@ -172,21 +209,6 @@ void LListDestroy(LList_Node *root, void (*FreeValue)(void *node_value)) {
 	}
 	FreeValue(root->node_value);
 	free(root);
-}
-/* Function: CompareInts
- * Compares integer values of integer pointers.
- *
- * *int1:	Pointer to integer.
- * *int2:	Pointer to integer.
- *
- * Returns: Integer as result of comparison. 1 if they are
- *          the same, 0 otherwise.
- */
-int CompareInts(const void *int1, const void *int2) {
-	if (*((int*)int1) == *((int*)int2))
-		return 1;
-	else
-		return 0;
 }
 /* Function GetNewCoords().
  * Generates new, random coordinates for fish pool. New coordinates
@@ -260,6 +282,21 @@ int GetNewCoords(
 	free(poss_veg_coords);
 	return new_pos;
 }
+/* Function: CompareInts
+* Compares integer values of integer pointers.
+*
+* *int1:	Pointer to integer.
+* *int2:	Pointer to integer.
+*
+* Returns: Integer as result of comparison. 1 if they are
+*          the same, 0 otherwise.
+*/
+int CompareInts(const void *int1, const void *int2) {
+	if (*((int*)int1) == *((int*)int2))
+		return 1;
+	else
+		return 0;
+}
 /* Function: ComparePointers
  * Compares values of two pointers.
  * 
@@ -271,6 +308,21 @@ int GetNewCoords(
  */
 int ComparePointers(const void *ptr1, const void *ptr2) {
 	if (ptr1 == ptr2)
+		return 1;
+	else
+		return 0;
+}
+/* Function: CompareFisheries
+ * Compares Fishery to fishery_id.
+ *
+ * *fishery:	Pointer to Fishery.
+ * *fishery_id:	Pointer to fishery_id.
+ *
+ * Returns: Integer as result of comparison. 1 if they are
+ *          the same, 0 otherwise.
+ */
+int CompareFisheries(const void *fishery1, const void *fishery_id) {
+	if (((Fishery *)fishery1)->fishery_id == *(int *) fishery_id)
 		return 1;
 	else
 		return 0;

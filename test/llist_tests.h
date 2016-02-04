@@ -18,7 +18,7 @@ void TestLListCreate(void);
 void TestLListIsEmpty(void);
 void TestLListAdd(void);
 void TestLListPop(void);
-
+void TestLListSearch(void);
 
 
 #endif /* LLIST_TESTS_H_ */

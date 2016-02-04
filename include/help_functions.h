@@ -17,17 +17,20 @@
 LList_Node *LListCreate(void);
 int LListIsEmpty(LList_Node *root);
 LList_Node *LListAdd(LList_Node *root, void *node_value);
-void *LListPop(LList_Node *root, const void *node_value, int (*CompareValues)(const void *value1, const void *value2));
-
+void *LListPop(LList_Node *root, const void *node_value, 
+	int (*CompareValues)(const void *value1, const void *value2));
+void *LListSearch(LList_Node *root, const void *node_value,
+	int(*CompareValues)(const void *value1, const void *value2));
 
 void LListDestroy(LList_Node *root, void (*FreeValue)(void *node_value));
 
-/* Helper functions for using ints in linked list structures. */
-int CompareInts(const void *int1, const void *int2);
+
 
 /* Other help functions.*/
 int GetNewCoords(int cur_pos, int radius, int size_x, int size_y, Fishery *fishery);
 int ComparePointers(const void *ptr1, const void *ptr2);
+int CompareFisheries(const void *fishery1, const void *fishery2);
+int CompareInts(const void *int1, const void *int2);
 
 #endif /* HELP_FUNCTIONS_H */
 

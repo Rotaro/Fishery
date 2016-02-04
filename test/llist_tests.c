@@ -12,6 +12,7 @@ int TestLList(void) {
 	TestLListIsEmpty();
 	TestLListAdd();
 	TestLListPop();
+	TestLListSearch();
 	printf("-----------\n");
 	printf("All LList tests passed.\n");
 	return 1;
@@ -158,5 +159,33 @@ void TestLListPop(void) {
 	assert((ptr1 = LListPop(root, node_value1, CompareInts)) == NULL);
 
 	free(root); free(node_value1); free(node_value2);
+	printf("Test passed.\n");
+}
+void TestLListSearch(void) {
+	LList_Node *root;
+	int *node_value1, *node_value2, *ptr1;
+
+	node_value1 = malloc(sizeof(int));
+	node_value2 = malloc(sizeof(int));
+
+	*node_value1 = 5;
+	*node_value2 = 10;
+
+	printf("Testing LListSearch()!\n");
+	root = LListCreate();
+
+//	assert(LListSearch(root, node_value1, CompareInts) == NULL);
+
+	LListAdd(root, node_value1);
+	LListAdd(root, node_value2);
+
+	assert((ptr1 = LListSearch(root, node_value1, CompareInts)) != NULL);
+	assert(ptr1 == node_value1);
+
+	assert((ptr1 = LListSearch(root, node_value2, CompareInts)) != NULL);
+	assert(ptr1 == node_value2);
+
+	LListDestroy(root, free);
+
 	printf("Test passed.\n");
 }
